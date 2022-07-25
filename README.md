@@ -46,7 +46,7 @@ docker run -d -p 8080:8080 -v /var/lib/gsrs:/home -e JAVA_OPTS='-Xms12g -Xmx12g 
 
 ### Running frontend and gateway only
 ```
-docker run -d -p 8080:8080 -v /var/logs/gsrs:/home -e MS_URL_SUBSTANCE="http://gsrs3-substances.api.server.org:8080/substances" -e JAVA_OPTS='-Xms2g -Xmx2g -XX:ReservedCodeCacheSize=512m -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|impurities|products|substances)' --name gsrs3-frontend gsrs3:latest
+docker run -d -p 8080:8080 -v /var/logs/gsrs:/home -e MS_URL_SUBSTANCES="http://gsrs3-substances.api.server.org:8080/substances" -e JAVA_OPTS='-Xms2g -Xmx2g -XX:ReservedCodeCacheSize=512m -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|impurities|products|substances)' --name gsrs3-frontend gsrs3:latest
 ```
 
 ### Running substances only
