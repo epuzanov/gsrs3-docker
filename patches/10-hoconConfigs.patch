@@ -1,0 +1,1668 @@
+diff --git a/adverse-events/src/main/resources/META-INF/context.xml b/adverse-events/src/main/resources/META-INF/context.xml
+new file mode 100644
+index 0000000..4463387
+--- /dev/null
++++ b/adverse-events/src/main/resources/META-INF/context.xml
+@@ -0,0 +1,3 @@
++<Context path="/adverse-events" docBase="adverse-events">
++    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-127\.\d+\.\d+\.\d+}"/>
++</Context>
+diff --git a/adverse-events/src/main/resources/application.conf b/adverse-events/src/main/resources/application.conf
+index dd73fed..48edccd 100644
+--- a/adverse-events/src/main/resources/application.conf
++++ b/adverse-events/src/main/resources/application.conf
+@@ -1,57 +1,86 @@
+ include "adverse-events-core.conf"
+-#include "substances-core.conf"
+ 
+-# need to reconsider this a bit
+-substanceAPI.BaseUrl="http://localhost:8080/" 
+-
+-server.port=8086
+-ix.home="ginas.ix"
++##################################################################
++# MAIN CONFIGURATION                                            ##
++##################################################################
+ 
+ spring.application.name="adverse-events"
++server.servlet.context-path="/"${spring.application.name}
++ix.home=${spring.application.name}".ix"
+ 
+-#this is what it registers under eureka
+-eureka.instance.hostname="adverse-events"
++application.host="http://localhost:8080"
++application.host=${?APPLICATION_HOST}
+ 
++# Secure session off for dev, but if using HTTPS it's better to have it on
++gsrs.sessions.sessionSecure=false
++
++# Since this currently extends substances, we must turn off molwitch
++# or else need to implement it
++gsrs.substances.molwitch.enabled=false
++
++# PUT YOUR PERSONAL EXTENSIONS AND ADDITIONS HERE
++#debug=true
++spring.main.allow-bean-definition-overriding=true
+ 
+ ##################################################################
+ # SPRING BOOT ACTUATOR SETTINGS FOR MICROSERVICE HEALTH CHECKS  ##
+ ##################################################################
++
+ # turn off rabbit mq check for now since we don't use it otherwise it wil say we ar down
+ management.health.rabbit.enabled: false
+ 
+-# PUT YOUR PERSONAL EXTENSIONS AND ADDITIONS HERE
+-#debug=true
+-spring.main.allow-bean-definition-overriding=true
++##################################################################
++# EUREKA SETTINGS                                               ##
++##################################################################
+ 
++eureka.instance.hostname=${spring.application.name}
++eureka.client.serviceUrl.defaultZone="http://localhost:8761/eureka"
++eureka.client.serviceUrl.defaultZone=${?EUREKA_SERVICE_URL}
+ #turn off eureka for now
+ eureka.client.enabled=false
++eureka.client.enabled=${?EUREKA_CLIENT_ENABLED}
+ 
+-ix.h2 {
+-        base = ./${ix.home}/h2
+-      }
++##################################################################
++# SUBSTANCES DATABASE CONNECTION                                ##
++##################################################################
++
++spring.datasource.url="jdbc:h2:file:substances.ix/h2/sprinxight;MODE=Oracle;AUTO_SERVER=TRUE"
++spring.datasource.url="jdbc:"${?DB_HOST}"substances"
++spring.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_SUBSTANCES}
++spring.datasource.url=${?DB_URL_SUBSTANCES}
++spring.datasource.username=${?DB_USERNAME}
++spring.datasource.password=${?DB_PASSWORD}
++spring.jpa.database-platform=${?DB_DIALECT}
++spring.jpa.hibernate.ddl-auto=none
++spring.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
++spring.hibernate.show-sql=false
+ 
+ ##################################################################
+ # DATABASE CONNECTION                                           ##
+ ##################################################################
+ 
+-# H2 Database Connection
+-spring.datasource.url="jdbc:h2:file:../substances/ginas.ix/h2/sprinxight;MODE=Oracle;AUTO_SERVER=TRUE"
+-spring.datasource.driverClassName=org.h2.Driver
+-spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+-# Should be "none" when not testing locally with H2
+-spring.jpa.hibernate.ddl-auto=update
++ix.h2 {
++        base = ./${ix.home}/h2
++      }
+ 
+ adverseevent.datasource.url="jdbc:h2:"${ix.h2.base}"/appinxight;MODE=Oracle;AUTO_SERVER=TRUE"
+-adverseevent.datasource.driverClassName=org.h2.Driver
+-adverseevent.jpa.database-platform=org.hibernate.dialect.H2Dialect
+-# Should be "none" when not testing locally with H2
++adverseevent.datasource.url="jdbc:"${?DB_HOST}"adverseevents"
++adverseevent.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_ADVERSE_EVENTS}
++adverseevent.datasource.url=${?DB_URL_ADVERSE_EVENTS}
++adverseevent.datasource.username=${?DB_USERNAME}
++adverseevent.datasource.password=${?DB_PASSWORD}
++adverseevent.jpa.database-platform=${?DB_DIALECT}
+ adverseevent.jpa.hibernate.ddl-auto=update
++adverseevent.jpa.hibernate.ddl-auto=${?DB_DDL_AUTO}
++adverseevent.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
++adverseevent.hibernate.show-sql=false
+ 
+-# !!!!! IMPORTANT, KEEP TO "none" for non-memory databases such as ORACLE, MYSQL, etc.
+-# Otherwise all the tables can be dropped or deleted
+-# Uncomment when NOT testing locally
+-# spring.jpa.hibernate.ddl-auto=none
+-# adverseevent.jpa.hibernate.ddl-auto=none
++##################################################################
++# API SETTINGS                                                  ##
++##################################################################
++
++substanceAPI.BaseUrl=${application.host}"/"
++substanceAPI.BaseUrl=${?API_URL}
+ 
+ ##################################################################
+ # CONFIGURATIONS VALIDATORS, PROCESSORS, EXPORT, etc            ##
+@@ -60,11 +89,11 @@ adverseevent.jpa.hibernate.ddl-auto=update
+ gsrs.entityProcessors = [
+     {
+         "entityClassName" = "gov.hhs.gsrs.adverseevents.adverseeventpt.models.AdverseEventPt",
+-		"processor" = "gov.hhs.gsrs.adverseevents.adverseeventpt.processors.AdverseEventPtProcessor"
++        "processor" = "gov.hhs.gsrs.adverseevents.adverseeventpt.processors.AdverseEventPtProcessor"
+     },
+     {
+         "entityClassName" = "gov.hhs.gsrs.adverseevents.adverseeventdme.models.AdverseEventDme",
+-		"processor" = "gov.hhs.gsrs.adverseevents.adverseeventdme.processors.AdverseEventDmeProcessor"
++        "processor" = "gov.hhs.gsrs.adverseevents.adverseeventdme.processors.AdverseEventDmeProcessor"
+     },
+     {
+         "entityClassName" = "gov.hhs.gsrs.adverseevents.adverseeventcvm.models.AdverseEventCvm",
+@@ -103,5 +132,8 @@ gsrs.indexers.list=[
+     }
+ ]
+ 
+-# Secure session off for dev, but if using HTTPS it's better to have it on
+-gsrs.sessions.sessionSecure=false
++##################################################################
++# CUSTOM CONFIGURATION                                          ##
++##################################################################
++
++include file("conf/adverse-events.conf")
+diff --git a/applications/src/main/resources/META-INF/context.xml b/applications/src/main/resources/META-INF/context.xml
+new file mode 100644
+index 0000000..c9c02e8
+--- /dev/null
++++ b/applications/src/main/resources/META-INF/context.xml
+@@ -0,0 +1,3 @@
++<Context path="/applications" docBase="applications">
++    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-127\.\d+\.\d+\.\d+}"/>
++</Context>
+diff --git a/applications/src/main/resources/application.conf b/applications/src/main/resources/application.conf
+index a7a5a6e..7a41904 100644
+--- a/applications/src/main/resources/application.conf
++++ b/applications/src/main/resources/application.conf
+@@ -1,62 +1,86 @@
+ include "applications-core.conf"
+ 
+-# Since this currently extends substances, we must turn off molwitch
+-# or else need to implement it
+-gsrs.substances.molwitch.enabled=false
++##################################################################
++# MAIN CONFIGURATION                                            ##
++##################################################################
+ 
+-# need to reconsider this a bit
+-substanceAPI.BaseUrl="http://localhost:8080/" 
++spring.application.name="applications"
++server.servlet.context-path="/"${spring.application.name}
++ix.home=${spring.application.name}".ix"
+ 
+-server.port=8083
+-ix.home="ginas.ix"
+-application.host= "http://localhost:8081"
++application.host="http://localhost:8080"
++application.host=${?APPLICATION_HOST}
+ 
+-spring.application.name="applications"
+-#this is what it registers under eureka
+-eureka.instance.hostname="applications"
++# Secure session off for dev, but if using HTTPS it's better to have it on
++gsrs.sessions.sessionSecure=false
+ 
+-#turn off eureka for now
+-eureka.client.enabled=false
++# Since this currently extends substances, we must turn off molwitch
++# or else need to implement it
++gsrs.substances.molwitch.enabled=false
++
++# PUT YOUR PERSONAL EXTENSIONS AND ADDITIONS HERE
++#debug=true
++spring.main.allow-bean-definition-overriding=true
+ 
+ ##################################################################
+ # SPRING BOOT ACTUATOR SETTINGS FOR MICROSERVICE HEALTH CHECKS  ##
+ ##################################################################
++
+ # turn off rabbit mq check for now since we don't use it otherwise it wil say we ar down
+ management.health.rabbit.enabled: false
+ 
+-# PUT YOUR PERSONAL EXTENSIONS AND ADDITIONS HERE
+-#debug=true
+-spring.main.allow-bean-definition-overriding=true
++##################################################################
++# EUREKA SETTINGS                                               ##
++##################################################################
+ 
+-#this is how HOCON does default values
+-eureka.client.serviceUrl.defaultZone= "http://localhost:8761/eureka"
++eureka.instance.hostname=${spring.application.name}
++eureka.client.serviceUrl.defaultZone="http://localhost:8761/eureka"
++eureka.client.serviceUrl.defaultZone=${?EUREKA_SERVICE_URL}
++#turn off eureka for now
++eureka.client.enabled=false
++eureka.client.enabled=${?EUREKA_CLIENT_ENABLED}
+ 
+-ix.h2 {
+-        base = ./${ix.home}/h2
+-      }
++##################################################################
++# SUBSTANCES DATABASE CONNECTION                                ##
++##################################################################
++
++spring.datasource.url="jdbc:h2:file:substances.ix/h2/sprinxight;MODE=Oracle;AUTO_SERVER=TRUE"
++spring.datasource.url="jdbc:"${?DB_HOST}"substances"
++spring.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_SUBSTANCES}
++spring.datasource.url=${?DB_URL_SUBSTANCES}
++spring.datasource.username=${?DB_USERNAME}
++spring.datasource.password=${?DB_PASSWORD}
++spring.jpa.database-platform=${?DB_DIALECT}
++spring.jpa.hibernate.ddl-auto=none
++spring.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
++spring.hibernate.show-sql=false
+ 
+ ##################################################################
+ # DATABASE CONNECTION                                           ##
+ ##################################################################
+ 
+-# H2 Database Connection
+-spring.datasource.url="jdbc:h2:file:../substances/ginas.ix/h2/sprinxight;MODE=Oracle;AUTO_SERVER=TRUE"
+-spring.datasource.driverClassName=org.h2.Driver
+-spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+-# Should be "none" when not testing locally with H2
+-spring.jpa.hibernate.ddl-auto=update
++ix.h2 {
++        base = ./${ix.home}/h2
++      }
+ 
+ application.datasource.url="jdbc:h2:"${ix.h2.base}"/appinxight;MODE=Oracle;AUTO_SERVER=TRUE"
+-application.datasource.driverClassName=org.h2.Driver
+-application.jpa.database-platform=org.hibernate.dialect.H2Dialect
+-# Should be "none" when not testing locally with H2
++application.datasource.url="jdbc:"${?DB_HOST}${spring.application.name}
++application.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_APPLICATIONS}
++application.datasource.url=${?DB_URL_APPLICATIONS}
++application.datasource.username=${?DB_USERNAME}
++application.datasource.password=${?DB_PASSWORD}
++application.jpa.database-platform=${?DB_DIALECT}
+ application.jpa.hibernate.ddl-auto=update
++application.jpa.hibernate.ddl-auto=${?DB_DDL_AUTO}
++application.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
++application.hibernate.show-sql=false
++
++##################################################################
++# API SETTINGS                                                  ##
++##################################################################
+ 
+-# !!!!! IMPORTANT, KEEP TO "none" for non-memory databases such as ORACLE, MYSQL, etc.
+-# Otherwise all the tables can be dropped or deleted
+-# Uncomment when NOT testing locally
+-# spring.jpa.hibernate.ddl-auto=none
+-# application.jpa.hibernate.ddl-auto=none
++substanceAPI.BaseUrl=${application.host}"/"
++substanceAPI.BaseUrl=${?API_URL}
+ 
+ ##################################################################
+ # CONFIGURATIONS VALIDATORS, PROCESSORS, EXPORT, etc            ##
+@@ -73,11 +97,11 @@ gsrs.validators.applications = [
+ gsrs.entityProcessors = [
+     {
+         "class" = "gov.hhs.gsrs.application.application.models.Application",
+-	    "processor" = "gov.hhs.gsrs.application.application.processors.ApplicationProcessor"
++        "processor" = "gov.hhs.gsrs.application.application.processors.ApplicationProcessor"
+     },
+     {
+         "class" = "gov.hhs.gsrs.application.applicationall.models.ApplicationAll",
+-    	"processor" = "gov.hhs.gsrs.application.applicationall.processors.ApplicationAllProcessor"
++        "processor" = "gov.hhs.gsrs.application.applicationall.processors.ApplicationAllProcessor"
+     },
+     {
+         "class" = "gov.hhs.gsrs.application.applicationdarrts.models.ApplicationDarrts",
+@@ -87,11 +111,11 @@ gsrs.entityProcessors = [
+ 
+ 
+ ix.ginas.export.factories.applications = [
+-  "gov.hhs.gsrs.application.application.exporters.ApplicationExporterFactory"
++    "gov.hhs.gsrs.application.application.exporters.ApplicationExporterFactory"
+ ]
+ 
+ ix.ginas.export.factories.applicationsall = [
+-  "gov.hhs.gsrs.application.applicationall.exporters.ApplicationAllExporterFactory"
++    "gov.hhs.gsrs.application.applicationall.exporters.ApplicationAllExporterFactory"
+ ]
+ 
+ gsrs.indexers.list=[
+@@ -99,16 +123,14 @@ gsrs.indexers.list=[
+         "indexer" = "gov.hhs.gsrs.application.application.indexers.ApplicationIngredientIndexValueMaker",
+         "class" = "gov.hhs.gsrs.application.application.models.Application"
+     },
+-    {
+-        "indexer" = "gov.hhs.gsrs.application.application.indexers.ApplicationClinicalTrialIndexValueMaker",
+-        "class" = "gov.hhs.gsrs.application.application.models.Application"
+-    },
+     {
+         "indexer" = "gov.hhs.gsrs.application.applicationall.indexers.ApplicationSubstanceIndexValueMaker",
+         "class" = "gov.hhs.gsrs.application.applicationall.models.ApplicationAll"
+     }
+ ]
+ 
++##################################################################
++# CUSTOM CONFIGURATION                                          ##
++##################################################################
+ 
+-# Secure session off for dev, but if using HTTPS it's better to have it on
+-gsrs.sessions.sessionSecure=false
++include file("conf/applications.conf")
+diff --git a/clinical-trials/src/main/resources/META-INF/context.xml b/clinical-trials/src/main/resources/META-INF/context.xml
+new file mode 100644
+index 0000000..d5d8a0d
+--- /dev/null
++++ b/clinical-trials/src/main/resources/META-INF/context.xml
+@@ -0,0 +1,3 @@
++<Context path="/clinical-trials" docBase="clinical-trials">
++    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-127\.\d+\.\d+\.\d+}"/>
++</Context>
+diff --git a/clinical-trials/src/main/resources/application.conf b/clinical-trials/src/main/resources/application.conf
+index e32895e..d14e391 100644
+--- a/clinical-trials/src/main/resources/application.conf
++++ b/clinical-trials/src/main/resources/application.conf
+@@ -1,197 +1,192 @@
+ include "gsrs-core.conf"
+ 
+-ix.home="ginas.ix"
+-application.host="http://localhost:8081"
+-server.port=8089
++##################################################################
++# MAIN CONFIGURATION                                            ##
++##################################################################
+ 
+ spring.application.name="clinical-trials"
++server.servlet.context-path="/"${spring.application.name}
++ix.home=${spring.application.name}".ix"
+ 
+-# Set to false when testing locally
+-gsrs.sessions.sessionSecure=false
++application.host="http://localhost:8080"
++application.host=${?APPLICATION_HOST}
+ 
+-# ix.ginas.export.path=/path/to/exports
++# Secure session off for dev, but if using HTTPS it's better to have it on
++gsrs.sessions.sessionSecure=false
+ 
+-gsrs.microservice.substances.api.baseURL="http://localhost:8081/"
++# Since this currently extends substances, we must turn off molwitch
++# or else need to implement it
++gsrs.substances.molwitch.enabled=false
+ 
+-# This is needed for RestTemplate/Export things to work well
+-gsrs.loopback.port=${server.port}
++# PUT YOUR PERSONAL EXTENSIONS AND ADDITIONS HERE
++#debug=true
++spring.main.allow-bean-definition-overriding=true
+ 
++##################################################################
++# SPRING BOOT ACTUATOR SETTINGS FOR MICROSERVICE HEALTH CHECKS  ##
++##################################################################
+ 
+-# Should be same folder as substances' exports
+-ix.ginas.export.path="../substances/exports"
++# turn off rabbit mq check for now since we don't use it otherwise it wil say we ar down
++management.health.rabbit.enabled: false
+ 
+-# This should be commented out when running locally.
+-# errors when checking if a substance exists.
+-# gsrs.microservice.substances.api.headers= {
+-#                        "auth-username" ="admin",
+-#                        "auth-key"="myKey"
+-# }
++##################################################################
++# EUREKA SETTINGS                                               ##
++##################################################################
+ 
+-# Turn off eureka for now
++eureka.instance.hostname=${spring.application.name}
++eureka.client.serviceUrl.defaultZone="http://localhost:8761/eureka"
++eureka.client.serviceUrl.defaultZone=${?EUREKA_SERVICE_URL}
++#turn off eureka for now
+ eureka.client.enabled=false
++eureka.client.enabled=${?EUREKA_CLIENT_ENABLED}
+ 
+ ##################################################################
+-# SPRING BOOT ACTUATOR SETTINGS FOR MICROSERVICE HEALTH CHECKS  ##
++# SUBSTANCES DATABASE CONNECTION                                ##
+ ##################################################################
+-# turn off rabbit mq check for now since we don't use it otherwise it wil say we ar down
+-management.health.rabbit.enabled: false
+ 
+-# PUT YOUR PERSONAL EXTENSIONS AND ADDITIONS HERE
+-#debug=true
+-spring.main.allow-bean-definition-overriding=true
++spring.datasource.url="jdbc:h2:file:substances.ix/h2/sprinxight;MODE=Oracle;AUTO_SERVER=TRUE"
++spring.datasource.url="jdbc:"${?DB_HOST}"substances"
++spring.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_SUBSTANCES}
++spring.datasource.url=${?DB_URL_SUBSTANCES}
++spring.datasource.username=${?DB_USERNAME}
++spring.datasource.password=${?DB_PASSWORD}
++spring.jpa.database-platform=${?DB_DIALECT}
++spring.jpa.hibernate.ddl-auto=none
++spring.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
++spring.hibernate.show-sql=false
+ 
+-#this is how HOCON does default values
+-eureka.client.serviceUrl.defaultZone= "http://localhost:8761/eureka"
++##################################################################
++# DATABASE CONNECTION                                           ##
++##################################################################
+ 
+ ix.h2 {
+         base = ./${ix.home}/h2
+       }
+ 
++clinicaltrial.datasource.url="jdbc:h2:"${ix.h2.base}"/appinxight;MODE=Oracle;AUTO_SERVER=TRUE"
++clinicaltrial.datasource.url="jdbc:"${?DB_HOST}"clinicaltrials"
++clinicaltrial.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_CLINICAL_TRIALS}
++clinicaltrial.datasource.url=${?DB_URL_CLINICAL_TRIALS}
++clinicaltrial.datasource.username=${?DB_USERNAME}
++clinicaltrial.datasource.password=${?DB_PASSWORD}
++clinicaltrial.jpa.database-platform=${?DB_DIALECT}
++clinicaltrial.jpa.hibernate.ddl-auto=update
++clinicaltrial.jpa.hibernate.ddl-auto=${?DB_DDL_AUTO}
++clinicaltrial.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
++clinicaltrial.hibernate.show-sql=false
++
+ ##################################################################
+-# SPECIFIC CLINICAL TRIAL CONFIGS                               ##
++# API SETTINGS                                                  ##
+ ##################################################################
+ 
+-server.tomcat.relaxed-query-chars="<,>,[,\\,],^,`,{,|,}"
+-server.tomcat.relaxed-path-chars="<,>,[,\\,],^,`,{,|,}"
++substanceAPI.BaseUrl=${application.host}"/"
++substanceAPI.BaseUrl=${?API_URL}
++gsrs.microservice.substances.api.baseURL=${substanceAPI.BaseUrl}
++gsrs.microservice.substances.api.baseURL=${?MS_API_URL}
++
++##################################################################
++# SPECIFIC CLINICAL TRIAL CONFIGS                               ##
++##################################################################
+ 
+-mygsrs.substanceAPI.baseUrl = "http://localhost:8080/"
++mygsrs.substanceAPI.baseUrl = ${substanceAPI.baseUrl}
+ 
+ mygsrs.clinicaltrial.us.substance.linking.keyType.value = "UUID"
+ mygsrs.clinicaltrial.us.substance.linking.keyType.agencyCodeValue = "BDNUM"
++mygsrs.clinicaltrial.us.substance.linking.keyType.agencyCodeValue = ${CT_CODE_SYSTEM}
+ 
+ mygsrs.clinicaltrial.us.ClinicalTrial.trialNumberPattern = "^NCT\\d+$"
+ mygsrs.clinicaltrial.us.substanceKeyPatternRegex = "^[-0-9a-f]{36}$"
+-mygsrs.clinicaltrial.us.agencySubstanceKeyTypeValue = "BDNUM";
++mygsrs.clinicaltrial.us.agencySubstanceKeyTypeValue = "BDNUM"
++mygsrs.clinicaltrial.us.agencySubstanceKeyTypeValue = ${CT_CODE_SYSTEM}
+ mygsrs.clinicaltrial.us.skipSubstanceValidation = false
+ 
+ mygsrs.clinicaltrial.eu.ClinicalTrialEurope.trialNumberPattern = "^\\d{4}-\\d{6}-\\d{2}-[A-Z]{2}$"
+ mygsrs.clinicaltrial.eu.substanceKeyPatternRegex = "^[-0-9a-f]{36}$"
+-mygsrs.clinicaltrial.eu.agencySubstanceKeyTypeValue = "BDNUM";
++mygsrs.clinicaltrial.eu.agencySubstanceKeyTypeValue = "BDNUM"
++mygsrs.clinicaltrial.eu.agencySubstanceKeyTypeValue = ${CT_CODE_SYSTEM}
+ mygsrs.clinicaltrial.eu.skipSubstanceValidation = false
+ 
+-mygsrs.clinicaltrial.cvUrl = application.host
+-
+-##################################################################
+-# DATABASE CONNECTION                                           ##
+-##################################################################
+-
+-# H2 Database Connections
+-
+-spring.datasource.url="jdbc:h2:file:../substances/ginas.ix/h2/sprinxight;AUTO_SERVER=TRUE"
+-spring.datasource.driverClassName="org.h2.Driver"
+-spring.jpa.database-platform="org.hibernate.dialect.H2Dialect"
+-spring.jpa.generate-ddl=false
+-# Hibernate ddl auto (none, create, create-drop, validate, update)
+-spring.jpa.hibernate.ddl-auto=update
+-spring.hibernate.show-sql=false
+-# Uncomment when NOT testing
+-# spring.jpa.generate-ddl=false
+-# spring.jpa.hibernate.ddl-auto=none
+-# spring.hibernate.show-sql=false
+-
+-clinicaltrial.datasource.url="jdbc:h2:file:./ginas.ix/h2/ctdb;AUTO_SERVER=TRUE"
+-clinicaltrial.datasource.driverClassName="org.h2.Driver"
+-clinicaltrial.datasource.username="sa"
+-clinicaltrial.datasource.password=""
+-clinicaltrial.jpa.database-platform="org.hibernate.dialect.H2Dialect"
+-clinicaltrial.jpa.generate-ddl=false
+-# Hibernate ddl auto (none, create, create-drop, validate, update)
+-clinicaltrial.jpa.hibernate.ddl-auto=update
+-clinicaltrial.hibernate.show-sql=true
+-# Uncomment when NOT testing
+-# clinicaltrial.jpa.generate-ddl=false
+-# clinicaltrial.jpa.hibernate.ddl-auto=none
+-# clinicaltrial.hibernate.show-sql=false
+-
++mygsrs.clinicaltrial.cvUrl = ${?application.host}
+ 
+ ##################################################################
+ # CONFIGURATIONS VALIDATORS, PROCESSORS, EXPORT, etc            ##
+ ##################################################################
+ 
+ gsrs.validators.clinicaltrialsus = [
+-            {
+-                "validatorClass" = "gov.hhs.gsrs.clinicaltrial.us.validators.GeneralTrialSetCreateUpdateDateOnUpdateIfNullValidator",
+-                "newObjClass" = "gov.hhs.gsrs.clinicaltrial.us.models.ClinicalTrialUS",
+-            },
+-            {
+-                "validatorClass" = "gov.hhs.gsrs.clinicaltrial.us.validators.GeneralTrialSetCreateDateOnCreateIfNullValidator",
+-                "newObjClass" = "gov.hhs.gsrs.clinicaltrial.us.models.ClinicalTrialUS",
+-            },
+-            {
+-                "validatorClass" = "gov.hhs.gsrs.clinicaltrial.us.validators.GeneralTrialOnCreateValidator",
+-                "newObjClass" = "gov.hhs.gsrs.clinicaltrial.us.models.ClinicalTrialUS",
+-            },
+-            {
+-                "validatorClass" = "gov.hhs.gsrs.clinicaltrial.us.validators.GeneralTrialOnUpdateValidator",
+-                "newObjClass" = "gov.hhs.gsrs.clinicaltrial.us.models.ClinicalTrialUS",
+-            },
+-            {
+-                "validatorClass" = "gov.hhs.gsrs.clinicaltrial.us.validators.GeneralSubstancesValidator",
+-                "newObjClass" = "gov.hhs.gsrs.clinicaltrial.us.models.ClinicalTrialUS",
+-            },
+-            {
+-                "validatorClass" = "gov.hhs.gsrs.clinicaltrial.us.validators.SubstancesExistValidator",
+-                "newObjClass" = "gov.hhs.gsrs.clinicaltrial.us.models.ClinicalTrialUS",
+-            },
+-            {
+-                "validatorClass" = "gov.hhs.gsrs.clinicaltrial.us.validators.RequiredFieldNonNullValidator",
+-                 "newObjClass" = "gov.hhs.gsrs.clinicaltrial.us.models.ClinicalTrialUS",
+-            },
+-        ]
++    {
++        "validatorClass" = "gov.hhs.gsrs.clinicaltrial.us.validators.GeneralTrialSetCreateUpdateDateOnUpdateIfNullValidator",
++        "newObjClass" = "gov.hhs.gsrs.clinicaltrial.us.models.ClinicalTrialUS",
++    },
++    {
++        "validatorClass" = "gov.hhs.gsrs.clinicaltrial.us.validators.GeneralTrialSetCreateDateOnCreateIfNullValidator",
++        "newObjClass" = "gov.hhs.gsrs.clinicaltrial.us.models.ClinicalTrialUS",
++    },
++    {
++        "validatorClass" = "gov.hhs.gsrs.clinicaltrial.us.validators.GeneralTrialOnCreateValidator",
++        "newObjClass" = "gov.hhs.gsrs.clinicaltrial.us.models.ClinicalTrialUS",
++    },
++    {
++        "validatorClass" = "gov.hhs.gsrs.clinicaltrial.us.validators.GeneralTrialOnUpdateValidator",
++        "newObjClass" = "gov.hhs.gsrs.clinicaltrial.us.models.ClinicalTrialUS",
++    },
++    {
++        "validatorClass" = "gov.hhs.gsrs.clinicaltrial.us.validators.GeneralSubstancesValidator",
++        "newObjClass" = "gov.hhs.gsrs.clinicaltrial.us.models.ClinicalTrialUS",
++    },
++    {
++        "validatorClass" = "gov.hhs.gsrs.clinicaltrial.us.validators.SubstancesExistValidator",
++        "newObjClass" = "gov.hhs.gsrs.clinicaltrial.us.models.ClinicalTrialUS",
++    },
++    {
++        "validatorClass" = "gov.hhs.gsrs.clinicaltrial.us.validators.RequiredFieldNonNullValidator",
++         "newObjClass" = "gov.hhs.gsrs.clinicaltrial.us.models.ClinicalTrialUS",
++    },
++]
+ 
+ gsrs.validators.clinicaltrialseurope = [
+-            {
+-                "validatorClass" = "gov.hhs.gsrs.clinicaltrial.europe.validators.GeneralTrialSetCreateUpdateDateOnUpdateIfNullValidator",
+-                "newObjClass" = "gov.hhs.gsrs.clinicaltrial.europe.models.ClinicalTrialEurope",
+-            },
+-            {
+-                "validatorClass" = "gov.hhs.gsrs.clinicaltrial.europe.validators.GeneralTrialSetCreateDateOnCreateIfNullValidator",
+-                "newObjClass" = "gov.hhs.gsrs.clinicaltrial.europe.models.ClinicalTrialEurope",
+-            },
+-            {
+-                "validatorClass" = "gov.hhs.gsrs.clinicaltrial.europe.validators.GeneralTrialOnCreateValidator",
+-                "newObjClass" = "gov.hhs.gsrs.clinicaltrial.europe.models.ClinicalTrialEurope",
+-            },
+-            {
+-                "validatorClass" = "gov.hhs.gsrs.clinicaltrial.europe.validators.GeneralTrialOnUpdateValidator",
+-                "newObjClass" = "gov.hhs.gsrs.clinicaltrial.europe.models.ClinicalTrialEurope",
+-            },
+-            {
+-                "validatorClass" = "gov.hhs.gsrs.clinicaltrial.europe.validators.GeneralSubstancesValidator",
+-                "newObjClass" = "gov.hhs.gsrs.clinicaltrial.europe.models.ClinicalTrialEurope",
+-            },
+-            {
+-                "validatorClass" = "gov.hhs.gsrs.clinicaltrial.europe.validators.SubstancesExistValidator",
+-                "newObjClass" = "gov.hhs.gsrs.clinicaltrial.europe.models.ClinicalTrialEurope",
+-            },
+-            {
+-                "validatorClass" = "gov.hhs.gsrs.clinicaltrial.europe.validators.RequiredFieldNonNullValidator",
+-                 "newObjClass" = "gov.hhs.gsrs.clinicaltrial.europe.models.ClinicalTrialEurope",
+-            },
+-        ]
++    {
++        "validatorClass" = "gov.hhs.gsrs.clinicaltrial.europe.validators.GeneralTrialSetCreateUpdateDateOnUpdateIfNullValidator",
++        "newObjClass" = "gov.hhs.gsrs.clinicaltrial.europe.models.ClinicalTrialEurope",
++    },
++    {
++        "validatorClass" = "gov.hhs.gsrs.clinicaltrial.europe.validators.GeneralTrialSetCreateDateOnCreateIfNullValidator",
++        "newObjClass" = "gov.hhs.gsrs.clinicaltrial.europe.models.ClinicalTrialEurope",
++    },
++    {
++        "validatorClass" = "gov.hhs.gsrs.clinicaltrial.europe.validators.GeneralTrialOnCreateValidator",
++        "newObjClass" = "gov.hhs.gsrs.clinicaltrial.europe.models.ClinicalTrialEurope",
++    },
++    {
++        "validatorClass" = "gov.hhs.gsrs.clinicaltrial.europe.validators.GeneralTrialOnUpdateValidator",
++        "newObjClass" = "gov.hhs.gsrs.clinicaltrial.europe.models.ClinicalTrialEurope",
++    },
++    {
++        "validatorClass" = "gov.hhs.gsrs.clinicaltrial.europe.validators.GeneralSubstancesValidator",
++        "newObjClass" = "gov.hhs.gsrs.clinicaltrial.europe.models.ClinicalTrialEurope",
++    },
++    {
++        "validatorClass" = "gov.hhs.gsrs.clinicaltrial.europe.validators.SubstancesExistValidator",
++        "newObjClass" = "gov.hhs.gsrs.clinicaltrial.europe.models.ClinicalTrialEurope",
++    },
++    {
++        "validatorClass" = "gov.hhs.gsrs.clinicaltrial.europe.validators.RequiredFieldNonNullValidator",
++         "newObjClass" = "gov.hhs.gsrs.clinicaltrial.europe.models.ClinicalTrialEurope",
++    },
++]
+ 
+ gsrs.entityProcessors = [
+-{
++    {
+         "class" = "gov.hhs.gsrs.clinicaltrial.us.models.ClinicalTrialUS",
+-		"processor" = "gov.hhs.gsrs.clinicaltrial.us.entityProcessor.ClinicalTrialUSProcessor"
+-},
+-{
++        "processor" = "gov.hhs.gsrs.clinicaltrial.us.entityProcessor.ClinicalTrialUSProcessor"
++    },
++    {
+         "class" = "gov.hhs.gsrs.clinicaltrial.europe.models.ClinicalTrialEurope",
+-		"processor" = "gov.hhs.gsrs.clinicaltrial.europe.entityProcessor.ClinicalTrialEuropeProcessor"
+-}
++        "processor" = "gov.hhs.gsrs.clinicaltrial.europe.entityProcessor.ClinicalTrialEuropeProcessor"
++    }
+ ]
+ 
+-# For cross indexing substance-browse to clinical trials
+-# gsrs.indexers.list += {
+-#  "indexer" = "gov.hhs.gsrs.clinicaltrial.us.indexers.ClinicalTrialUSEntityLinkIndexValueMaker"
+-# }
+-# Keep commented out for now
+-# gsrs.indexers.list += {
+-#  "indexer" = "gov.hhs.gsrs.clinicaltrial.europe.indexers.ClinicalTrialEuropeEntityLinkIndexValueMaker"
+-# }
+-
+-
+-ix.ginas.export.factories.clinicaltrialsus = [
+-	"gov.hhs.gsrs.clinicaltrial.us.exporters.ClinicalTrialUSExporterFactory"
+-]
++##################################################################
++# CUSTOM CONFIGURATION                                          ##
++##################################################################
+ 
++include file("conf/clinical-trials.conf")
+diff --git a/frontend/pom.xml b/frontend/pom.xml
+index 6a6ca33..a9a6867 100644
+--- a/frontend/pom.xml
++++ b/frontend/pom.xml
+@@ -38,6 +38,11 @@
+             <artifactId>spring-boot-starter-test</artifactId>
+             <scope>test</scope>
+         </dependency>
++        <dependency>
++            <groupId>com.github.zeldigas</groupId>
++            <artifactId>spring-hocon-property-source</artifactId>
++            <version>0.4.0</version>
++        </dependency>
+     </dependencies>
+ 
+     <build>
+diff --git a/frontend/src/main/resources/META-INF/context.xml b/frontend/src/main/resources/META-INF/context.xml
+new file mode 100644
+index 0000000..b1bc9ce
+--- /dev/null
++++ b/frontend/src/main/resources/META-INF/context.xml
+@@ -0,0 +1,4 @@
++<Context path="/frontend" docBase="frontend">
++    <Resources cacheMaxSize="40960"/>
++    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-127\.\d+\.\d+\.\d+}"/>
++</Context>
+diff --git a/frontend/src/main/resources/META-INF/spring.factories b/frontend/src/main/resources/META-INF/spring.factories
+new file mode 100644
+index 0000000..2cd3eb0
+--- /dev/null
++++ b/frontend/src/main/resources/META-INF/spring.factories
+@@ -0,0 +1 @@
++org.springframework.boot.env.PropertySourceLoader=com.github.zeldigas.spring.env.HoconPropertySourceLoader
+\ No newline at end of file
+diff --git a/frontend/src/main/resources/application.conf b/frontend/src/main/resources/application.conf
+new file mode 100644
+index 0000000..e12b727
+--- /dev/null
++++ b/frontend/src/main/resources/application.conf
+@@ -0,0 +1,27 @@
++##################################################################
++# MAIN CONFIGURATION                                            ##
++##################################################################
++
++spring.application.name="frontend"
++server.servlet.context-path="/"${spring.application.name}
++
++#this is the prefix path for the front end
++route.prefix="ginas/app/beta/"
++route.prefix=${?FRONTEND_ROUTE_PREFIX}
++
++##################################################################
++# EUREKA SETTINGS                                               ##
++##################################################################
++
++eureka.instance.hostname=${spring.application.name}
++eureka.client.serviceUrl.defaultZone="http://localhost:8761/eureka"
++eureka.client.serviceUrl.defaultZone=${?EUREKA_SERVICE_URL}
++#turn off eureka for now
++eureka.client.enabled=false
++eureka.client.enabled=${?EUREKA_CLIENT_ENABLED}
++
++##################################################################
++# CUSTOM CONFIGURATION                                          ##
++##################################################################
++
++include file("conf/frontend.conf")
+diff --git a/frontend/src/main/resources/application.properties b/frontend/src/main/resources/application.properties
+deleted file mode 100644
+index 6d04429..0000000
+--- a/frontend/src/main/resources/application.properties
++++ /dev/null
+@@ -1,10 +0,0 @@
+-server.port= 8082
+-#this is the prefix path for the front end
+-route.prefix= ginas/app/beta/
+-
+-
+-spring.application.name= frontend
+-management.endpoint.health.show-details=always
+-
+-#only used if using eureka client
+-eureka.client.serviceUrl.defaultZone= ${EUREKA_SERVER:#{http://localhost:8761/eureka}}
+diff --git a/gateway/pom.xml b/gateway/pom.xml
+index db5df5a..447eee7 100644
+--- a/gateway/pom.xml
++++ b/gateway/pom.xml
+@@ -54,6 +54,11 @@
+                 </exclusion>
+             </exclusions>
+         </dependency>
++        <dependency>
++            <groupId>com.github.zeldigas</groupId>
++            <artifactId>spring-hocon-property-source</artifactId>
++            <version>0.4.0</version>
++        </dependency>
+     </dependencies>
+ 
+     <dependencyManagement>
+diff --git a/gateway/src/main/resources/META-INF/spring.factories b/gateway/src/main/resources/META-INF/spring.factories
+new file mode 100644
+index 0000000..2cd3eb0
+--- /dev/null
++++ b/gateway/src/main/resources/META-INF/spring.factories
+@@ -0,0 +1 @@
++org.springframework.boot.env.PropertySourceLoader=com.github.zeldigas.spring.env.HoconPropertySourceLoader
+\ No newline at end of file
+diff --git a/gateway/src/main/resources/application.conf b/gateway/src/main/resources/application.conf
+new file mode 100644
+index 0000000..0cc5a0d
+--- /dev/null
++++ b/gateway/src/main/resources/application.conf
+@@ -0,0 +1,277 @@
++##################################################################
++# MAIN CONFIGURATION                                            ##
++##################################################################
++
++spring.application.name="gateway"
++
++application.host="http://localhost:8080"
++application.host=${?APPLICATION_HOST}
++
++# PUT YOUR PERSONAL EXTENSIONS AND ADDITIONS HERE
++#debug=true
++
++##################################################################
++# SPRING BOOT ACTUATOR SETTINGS FOR MICROSERVICE HEALTH CHECKS  ##
++##################################################################
++
++# turn off rabbit mq check for now since we don't use it otherwise it wil say we ar down
++management.health.rabbit.enabled: false
++
++##################################################################
++# EUREKA SETTINGS                                               ##
++##################################################################
++
++eureka.instance.hostname=${spring.application.name}
++eureka.client.serviceUrl.defaultZone="http://localhost:8761/eureka"
++eureka.client.serviceUrl.defaultZone=${?EUREKA_SERVICE_URL}
++#turn off eureka for now
++eureka.client.enabled=false
++eureka.client.enabled=${?EUREKA_CLIENT_ENABLED}
++ribbon.eureka.enabled=false
++
++##################################################################
++# API SETTINGS                                                  ##
++##################################################################
++
++substanceAPI.BaseUrl=${application.host}"/"
++substanceAPI.BaseUrl=${?API_URL}
++gsrs.microservice.adverseevents.api.baseURL=${substanceAPI.BaseUrl}"adverse-events"
++gsrs.microservice.adverseevents.api.baseURL=${?MS_URL_ADVERSE_EVENTS}
++gsrs.microservice.applications.api.baseURL=${substanceAPI.BaseUrl}"applications"
++gsrs.microservice.applications.api.baseURL=${?MS_URL_APPLICATIONS}
++gsrs.microservice.clinicaltrialsus.api.baseURL=${substanceAPI.BaseUrl}"clinical-trials"
++gsrs.microservice.clinicaltrialsus.api.baseURL=${?MS_URL_CLINICAL_TRIALS}
++gsrs.microservice.clinicaltrialsus.api.baseURL=${?MS_URL_CLINICAL_TRIALS_US}
++gsrs.microservice.clinicaltrialseurope.api.baseURL=${substanceAPI.BaseUrl}"clinical-trials"
++gsrs.microservice.clinicaltrialseurope.api.baseURL=${?MS_URL_CLINICAL_TRIALS}
++gsrs.microservice.clinicaltrialseurope.api.baseURL=${?MS_URL_CLINICAL_TRIALS_EUROPE}
++gsrs.microservice.frontend.api.baseURL=${substanceAPI.BaseUrl}"frontend"
++gsrs.microservice.frontend.api.baseURL=${?MS_URL_FRONTEND}
++gsrs.microservice.impurities.api.baseURL=${substanceAPI.BaseUrl}"impurities"
++gsrs.microservice.impurities.api.baseURL=${?MS_URL_IMPURITIES}
++gsrs.microservice.products.api.baseURL=${substanceAPI.BaseUrl}"products"
++gsrs.microservice.products.api.baseURL=${?MS_URL_PRODUCTS}
++gsrs.microservice.substances.api.baseURL=${substanceAPI.BaseUrl}"substances"
++gsrs.microservice.substances.api.baseURL=${?MS_API_URL}
++
++##################################################################
++# ZUUL ROUTES CONFIGURATION                                     ##
++##################################################################
++
++zuul.routes = {
++    "ui" = {
++      "path" = "/ginas/app/beta/**",
++      "url" = ${gsrs.microservice.frontend.api.baseURL}"/ginas/app/beta",
++      "serviceId" = "frontend"
++    },
++    "root" = {
++      "path" = "/",
++      "url" = ${gsrs.microservice.frontend.api.baseURL}"/ginas/app/beta",
++      "serviceId" = "root"
++    },
++    "ginas_app" = {
++      "path" = "/ginas/app",
++      "url" = ${gsrs.microservice.frontend.api.baseURL}"/ginas/app/beta",
++      "serviceId" = "ginas_app"
++    },
++    #############################
++    #START applications section
++    #############################
++    "applications_core" = {
++      "path" = "/api/v1/applications/**",
++      "url" = ${gsrs.microservice.applications.api.baseURL}"/api/v1/applications",
++      "serviceId" = "applications_core"
++    },
++    "applications_core_alt" = {
++      "path" = "/api/v1/applications(**)/**",
++      "url" = ${gsrs.microservice.applications.api.baseURL}"/api/v1/applications",
++      "serviceId" = "applications_core_alt"
++    },
++    "applications_all" = {
++      "path" = "/api/v1/applicationsall/**",
++      "url" = ${gsrs.microservice.applications.api.baseURL}"/api/v1/applicationsall",
++      "serviceId" = "applications_all"
++    },
++    "applications_all_alt" = {
++      "path" = "/api/v1/applicationsall(**)/**",
++      "url" = ${gsrs.microservice.applications.api.baseURL}"/api/v1/applicationsall",
++      "serviceId" = "applications_all_alt"
++    },
++    "applications_darrts" = {
++      "path" = "/api/v1/applicationsdarrts/**",
++      "url" = ${gsrs.microservice.applications.api.baseURL}"/api/v1/applicationsdarrts",
++      "serviceId" = "applications_darrts"
++    },
++    "applications_darrts_alt" = {
++      "path" = "/api/v1/applicationsdarrts(**)/**",
++      "url" = ${gsrs.microservice.applications.api.baseURL}"/api/v1/applicationsdarrts",
++      "serviceId" = "applications_darrts_alt"
++    },
++    "applications_searchcount" = {
++      "path" = "/api/v1/searchcounts/**",
++      "url" = ${gsrs.microservice.applications.api.baseURL}"/api/v1/searchcounts",
++      "serviceId" = "applications_searchcount"
++    },
++    "applications_searchcount_alt" = {
++      "path" = "/api/v1/searchcounts(**)/**",
++      "url" = ${gsrs.microservice.applications.api.baseURL}"/api/v1/searchcounts",
++      "serviceId" = "applications_searchcount"
++    },
++    #############################
++    #END applications section
++    #############################
++    #############################
++    #START products section
++    #############################
++    "products_core" = {
++      "path" = "/api/v1/products/**",
++      "url" = ${gsrs.microservice.products.api.baseURL}"/api/v1/products",
++      "serviceId" = "products_core"
++    },
++    "products_core_alt" = {
++      "path" = "/api/v1/products(**)/**",
++      "url" = ${gsrs.microservice.products.api.baseURL}"/api/v1/products",
++      "serviceId" = "products_core"
++    },
++    "products_all" = {
++      "path" = "/api/v1/productsall/**",
++      "url" = ${gsrs.microservice.products.api.baseURL}"/api/v1/productsall",
++      "serviceId" = "products_all"
++    },
++    "products_all_alt" = {
++      "path" = "/api/v1/productsall(**)/**",
++      "url" = ${gsrs.microservice.products.api.baseURL}"/api/v1/productsall",
++      "serviceId" = "products_all"
++    },
++    "products_elist" = {
++      "path" = "/api/v1/productselist/**",
++      "url" = ${gsrs.microservice.products.api.baseURL}"/api/v1/productselist",
++      "serviceId" = "products_elist"
++    },
++    "products_elist_alt" = {
++      "path" = "/api/v1/productselist(**)/**",
++      "url" = ${gsrs.microservice.products.api.baseURL}"/api/v1/productselist",
++      "serviceId" = "products_elist"
++    },
++    #############################
++    #END products section
++    #############################
++    #############################
++    #START impurities section
++    #############################
++    "impurities_core" = {
++      "path" = "/api/v1/impurities/**",
++      "url" = ${gsrs.microservice.impurities.api.baseURL}"/api/v1/impurities",
++      "serviceId" = "impurities_core"
++    },
++    "impurities_core_alt" = {
++      "path" = "/api/v1/impurities(**)/**",
++      "url" = ${gsrs.microservice.impurities.api.baseURL}"/api/v1/impurities",
++      "serviceId" = "impurities_core"
++    },
++    #############################
++    #END impurities section
++    #############################
++    #############################
++    #START clinical_trials section
++    #############################
++    "clinical_trials_us" = {
++      "path" = "/api/v1/clinicaltrialsus/**",
++      "url" = ${gsrs.microservice.clinicaltrialsus.api.baseURL}"/api/v1/clinicaltrialsus",
++      "serviceId" = "clinical_trials_us"
++    },
++    "clinical_trials_us_alt" = {
++      "path" = "/api/v1/clinicaltrialsus(**)/**",
++      "url" = ${gsrs.microservice.clinicaltrialsus.api.baseURL}"/api/v1/clinicaltrialsus",
++      "serviceId" = "clinical_trials_us"
++    },
++    "clinical_trials_europe" = {
++      "path" = "/api/v1/clinicaltrialseurope/**",
++      "url" = ${gsrs.microservice.clinicaltrialseurope.api.baseURL}"/api/v1/clinicaltrialseurope",
++      "serviceId" = "clinical_trials_europe"
++    },
++    "clinical_trials_europe_alt" = {
++      "path" = "/api/v1/clinicaltrialseurope(**)/**",
++      "url" = ${gsrs.microservice.clinicaltrialseurope.api.baseURL}"/api/v1/clinicaltrialseurope",
++      "serviceId" = "clinical_trials_europe"
++    },
++    #############################
++    #END clinical_trials section
++    #############################
++    #############################
++    #START adverse-eventpt section
++    #############################
++    "adverseeventpt_core" = {
++       "path" = "/api/v1/adverseeventpt/**",
++       "url" = ${gsrs.microservice.adverseevents.api.baseURL}"/api/v1/adverseeventpt",
++       "serviceId" = "adverseeventpt_core"
++    },
++    "adverseeventpt_core_alt" = {
++       "path" = "/api/v1/adverseeventpt(**)/**",
++       "url" = ${gsrs.microservice.adverseevents.api.baseURL}"/api/v1/adverseeventpt",
++       "serviceId" = "adverseeventpt_core"
++    },
++    "adverseeventdme_core" = {
++       "path" = "/api/v1/adverseeventdme/**",
++       "url" = ${gsrs.microservice.adverseevents.api.baseURL}"/api/v1/adverseeventdme",
++       "serviceId" = "adverseeventdme_core"
++    },
++    "adverseeventdme_core_alt" = {
++       "path" = "/api/v1/adverseeventdme(**)/**",
++       "url" = ${gsrs.microservice.adverseevents.api.baseURL}"/api/v1/adverseeventdme",
++       "serviceId" = "adverseeventdme_core"
++    },
++    "adverseeventcvm_core" = {
++       "path" = "/api/v1/adverseeventcvm/**",
++       "url" = ${gsrs.microservice.adverseevents.api.baseURL}"/api/v1/adverseeventcvm",
++       "serviceId" = "adverseeventcvm_core"
++    },
++    "adverseeventcvm_core_alt" = {
++       "path" = "/api/v1/adverseeventcvm(**)/**",
++       "url" = ${gsrs.microservice.adverseevents.api.baseURL}"/api/v1/adverseeventcvm",
++       "serviceId" = "adverseeventcvm_core"
++    },
++    #############################
++    #END adverse-eventpt section
++    #############################
++
++    #fallback anything else goes to substances
++    "legacy" = {
++      "path" = "/**",
++      "url" = ${gsrs.microservice.substances.api.baseURL},
++      "serviceId" = "substances"
++    }
++}
++
++zuul.ignored-patterns = [
++  "/actuator/health"
++]
++
++# Make sure microservices are given enoough time to perform tasks.
++zuul.host.socket-timeout-millis: 300000
++
++#Keeps + encoded characters encoded as +
++zuul.forceOriginalQueryStringEncoding=true
++
++#management.endpoints.web.exposure.include="*"
++management.endpoints.web.exposure.include="routes,filters"
++
++spring.servlet.multipart.max-file-size=512MB
++spring.servlet.multipart.max-request-size=512MB
++
++##################################################################
++# LEGACY AUTHENTICATION                                         ##
++##################################################################
++
++ix.authentication.allownonauthenticated = ${?AUTH_ALLOW_NONAUTH}
++ix.authentication.sysadmin-email = ${?AUTH_SYSADMIN_EMAIL}
++ix.authentication.trustheader = ${?AUTH_TRUST_HEADER}
++ix.authentication.usernameheader = ${?AUTH_USERNAME_HEADER}
++ix.authentication.useremailheader = ${?AUTH_EMAIL_HEADER}
++ix.authentication.userrolesheader = ${?AUTH_ROLES_HEADER}
++
++##################################################################
++# CUSTOM CONFIGURATION                                          ##
++##################################################################
++
++include file("conf/gateway.conf")
+diff --git a/gateway/src/main/resources/application.yml b/gateway/src/main/resources/application.yml
+deleted file mode 100644
+index cf3b71e..0000000
+--- a/gateway/src/main/resources/application.yml
++++ /dev/null
+@@ -1,104 +0,0 @@
+-eureka:
+-  client:
+-    registerWithEureka: true 
+-    fetch-registry: true
+-    serviceUrl:
+-      defaultZone: ${EUREKA_SERVER:http://localhost:8761}
+-
+-spring:
+-  application:
+-    name: gateway
+-
+-debug: true
+-
+-zuul:
+-  #this sets sensitiveHeaders to empty list so cookies and auth headers are passed through both ways
+-  sensitiveHeaders:
+-  routes:
+-    ui:
+-      path: /ginas/app/beta/**
+-      url: http://localhost:8082
+-      serviceId: frontend
+-      stripPrefix: false
+-
+-    #############################
+-    #START applications section
+-    #############################
+-    applications_core:
+-      path: /api/v1/applications/**
+-      url: http://localhost:8083/applications/api/v1/applications
+-      serviceId: applications_core
+-    applications_core_alt:
+-      path: /api/v1/applications(**)/**
+-      url: http://localhost:8083/applications/api/v1/applications
+-      serviceId: applications_core_alt
+-    applications_all:
+-      path: /api/v1/applicationsall/**
+-      url: http://localhost:8083/applications/api/v1/applicationsall
+-      serviceId: applications_all
+-    applications_all_alt:
+-      path: /api/v1/applicationsall(**)/**
+-      url: http://localhost:8083/applications/api/v1/applicationsall
+-      serviceId: applications_all_alt
+-    applications_darrts:
+-      path: /api/v1/applicationsdarrts/**
+-      url: http://localhost:8083/applications/api/v1/applicationsdarrts
+-      serviceId: applications_darrts
+-    applications_darrts_alt:
+-      path: /api/v1/applicationsdarrts(**)/**
+-      url: http://localhost:8083/applications/api/v1/applicationsdarrts
+-      serviceId: applications_darrts_alt
+-    applications_searchcount:
+-      path: /api/v1/searchcounts/**
+-      url: http://localhost:8083/applications/api/v1/searchcounts
+-      serviceId: applications_searchcount
+-    applications_searchcount_alt:
+-      path: /api/v1/searchcounts(**)/**
+-      url: http://localhost:8083/applications/api/v1/searchcounts
+-      serviceId: applications_searchcount
+-
+-    #############################
+-    #END applications section
+-    #############################
+-
+-
+-    #fallback anything else goes to substances
+-    legacy:
+-      path: /**
+-      url: http://localhost:8080
+-      serviceId: substances
+-  ignored-patterns:
+-      - "/actuator/health"
+-
+-ribbon:
+-  eureka:
+-    enabled: false
+-
+-server.port: 8081
+-#management.endpoints.web.exposure.include: *
+-management.endpoints.web.exposure.include: 'routes,filters'
+-
+-logging:
+-  level:
+-    org.springframework.cloud.gateway: DEBUG
+-    reactor.netty.http.client: DEBUG
+-
+-spring.servlet.multipart.max-file-size:    100MB
+-spring.servlet.multipart.max-request-size: 100MB
+-
+-eureka.client.enabled: false
+-#Adding high timeout so that GSRS won't time out waiting for response from server.
+-
+-ix:
+-  authentication:
+-    allownonauthenticated: true
+-    #set the administrator email here to include their contact info in the error message
+-    #sysadmin-email: admin@example.com
+-    trustheader: true
+-    usernameheader: test-username
+-
+-# Make sure microservices are given enoough time to perform tasks. 
+-zuul.host.socket-timeout-millis: 300000 
+-
+-#Keeps + encoded characters encoded as +
+-zuul.forceOriginalQueryStringEncoding: true
+diff --git a/impurities/src/main/resources/META-INF/context.xml b/impurities/src/main/resources/META-INF/context.xml
+new file mode 100644
+index 0000000..4b17cce
+--- /dev/null
++++ b/impurities/src/main/resources/META-INF/context.xml
+@@ -0,0 +1,3 @@
++<Context path="/impurities" docBase="impurities">
++    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-127\.\d+\.\d+\.\d+}"/>
++</Context>
+diff --git a/impurities/src/main/resources/application.conf b/impurities/src/main/resources/application.conf
+index 79fcbce..2a61c5a 100644
+--- a/impurities/src/main/resources/application.conf
++++ b/impurities/src/main/resources/application.conf
+@@ -1,65 +1,86 @@
+ include "impurities-core.conf"
+-#include "substances-core.conf"
+ 
+-# Since this currently extends substances, we must turn off molwitch
+-# or else need to implement it
+-gsrs.substances.molwitch.enabled=false
++##################################################################
++# MAIN CONFIGURATION                                            ##
++##################################################################
+ 
+-# need to reconsider this a bit
+-substanceAPI.BaseUrl="http://localhost:8080/"
++spring.application.name="impurities"
++server.servlet.context-path="/"${spring.application.name}
++ix.home=${spring.application.name}".ix"
+ 
+-server.port=8085
+-ix.home="ginas.ix"
+-application.host= "http://localhost:8081"
++application.host="http://localhost:8080"
++application.host=${?APPLICATION_HOST}
+ 
++# Secure session off for dev, but if using HTTPS it's better to have it on
++gsrs.sessions.sessionSecure=false
+ 
+-spring.application.name="impurities"
+-#this is what it registers under eureka
+-eureka.instance.hostname="impurities"
++# Since this currently extends substances, we must turn off molwitch
++# or else need to implement it
++gsrs.substances.molwitch.enabled=false
+ 
+-#turn off eureka for now
+-eureka.client.enabled=false
++# PUT YOUR PERSONAL EXTENSIONS AND ADDITIONS HERE
++#debug=true
++spring.main.allow-bean-definition-overriding=true
+ 
+ ##################################################################
+ # SPRING BOOT ACTUATOR SETTINGS FOR MICROSERVICE HEALTH CHECKS  ##
+ ##################################################################
++
+ # turn off rabbit mq check for now since we don't use it otherwise it wil say we ar down
+ management.health.rabbit.enabled: false
+ 
+-# PUT YOUR PERSONAL EXTENSIONS AND ADDITIONS HERE
+-#debug=true
+-spring.main.allow-bean-definition-overriding=true
++##################################################################
++# EUREKA SETTINGS                                               ##
++##################################################################
+ 
+-#this is how HOCON does default values
+-eureka.client.serviceUrl.defaultZone= "http://localhost:8761/eureka"
++eureka.instance.hostname=${spring.application.name}
++eureka.client.serviceUrl.defaultZone="http://localhost:8761/eureka"
++eureka.client.serviceUrl.defaultZone=${?EUREKA_SERVICE_URL}
++#turn off eureka for now
++eureka.client.enabled=false
++eureka.client.enabled=${?EUREKA_CLIENT_ENABLED}
+ 
+-ix.h2 {
+-        base = ./${ix.home}/h2
+-      }
++##################################################################
++# SUBSTANCES DATABASE CONNECTION                                ##
++##################################################################
++
++spring.datasource.url="jdbc:h2:file:substances.ix/h2/sprinxight;MODE=Oracle;AUTO_SERVER=TRUE"
++spring.datasource.url="jdbc:"${?DB_HOST}"substances"
++spring.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_SUBSTANCES}
++spring.datasource.url=${?DB_URL_SUBSTANCES}
++spring.datasource.username=${?DB_USERNAME}
++spring.datasource.password=${?DB_PASSWORD}
++spring.jpa.database-platform=${?DB_DIALECT}
++spring.jpa.hibernate.ddl-auto=none
++spring.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
++spring.hibernate.show-sql=false
+ 
+ ##################################################################
+ # DATABASE CONNECTION                                           ##
+ ##################################################################
+ 
+-# H2 Database Connection
+-spring.datasource.url="jdbc:h2:file:../substances/ginas.ix/h2/sprinxight;MODE=Oracle;AUTO_SERVER=TRUE"
+-spring.datasource.driverClassName=org.h2.Driver
+-spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+-# Should be "none" when not testing locally with H2
+-spring.jpa.hibernate.ddl-auto=update
++ix.h2 {
++        base = ./${ix.home}/h2
++      }
+ 
+ impurities.datasource.url="jdbc:h2:"${ix.h2.base}"/appinxight;MODE=Oracle;AUTO_SERVER=TRUE"
+-impurities.datasource.driverClassName=org.h2.Driver
+-impurities.jpa.database-platform=org.hibernate.dialect.H2Dialect
+-# Should be "none" when not testing locally with H2
++impurities.datasource.url="jdbc:"${?DB_HOST}${spring.application.name}
++impurities.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_IMPURITIES}
++impurities.datasource.url=${?DB_URL_IMPURITIES}
++impurities.datasource.username=${?DB_USERNAME}
++impurities.datasource.password=${?DB_PASSWORD}
++impurities.jpa.database-platform=${?DB_DIALECT}
+ impurities.jpa.hibernate.ddl-auto=update
++impurities.jpa.hibernate.ddl-auto=${?DB_DDL_AUTO}
++impurities.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
++impurities.hibernate.show-sql=false
+ 
++##################################################################
++# API SETTINGS                                                  ##
++##################################################################
+ 
+-# !!!!! IMPORTANT, KEEP TO "none" for non-memory databases such as ORACLE, MYSQL, etc.
+-# Otherwise all the tables can be dropped or deleted
+-# Uncomment when NOT testing locally
+-# spring.jpa.hibernate.ddl-auto=none
+-# impurities.jpa.hibernate.ddl-auto=none
++substanceAPI.BaseUrl=${application.host}"/"
++substanceAPI.BaseUrl=${?API_URL}
+ 
+ ##################################################################
+ # CONFIGURATIONS VALIDATORS, PROCESSORS, EXPORT, etc            ##
+@@ -76,7 +97,7 @@ gsrs.validators.impurities = [
+ gsrs.entityProcessors = [
+     {
+         "class" = "gov.hhs.gsrs.impurities.Impurities",
+-	    "processor" = "gov.hhs.gsrs.impurities.processors.ImpuritiesProcessor"
++        "processor" = "gov.hhs.gsrs.impurities.processors.ImpuritiesProcessor"
+     }
+ ]
+ 
+@@ -85,9 +106,8 @@ ix.ginas.export.factories.impurities = [
+     "gov.hhs.gsrs.impurities.exporters.ImpuritiesExporterFactory"
+ ]
+ 
+-# DISPLAY SQL in Console
+-# spring.jpa.show-sql = true
+-
++##################################################################
++# CUSTOM CONFIGURATION                                          ##
++##################################################################
+ 
+-# Secure session off for dev, but if using HTTPS it's better to have it on
+-gsrs.sessions.sessionSecure=false
++include file("conf/impurities.conf")
+diff --git a/products/src/main/resources/META-INF/context.xml b/products/src/main/resources/META-INF/context.xml
+new file mode 100644
+index 0000000..c43535e
+--- /dev/null
++++ b/products/src/main/resources/META-INF/context.xml
+@@ -0,0 +1,3 @@
++<Context path="/products" docBase="products">
++    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-127\.\d+\.\d+\.\d+}"/>
++</Context>
+diff --git a/products/src/main/resources/application.conf b/products/src/main/resources/application.conf
+index 7cf6242..6c86c9e 100644
+--- a/products/src/main/resources/application.conf
++++ b/products/src/main/resources/application.conf
+@@ -1,63 +1,86 @@
+ include "products-core.conf"
+-#include "substances-core.conf"
+ 
+-# Since this currently extends substances, we must turn off molwitch
+-# or else need to implement it
+-gsrs.substances.molwitch.enabled=false
++##################################################################
++# MAIN CONFIGURATION                                            ##
++##################################################################
+ 
+-# need to reconsider this a bit
+-substanceAPI.BaseUrl="http://localhost:8080/"
++spring.application.name="products"
++server.servlet.context-path="/"${spring.application.name}
++ix.home=${spring.application.name}".ix"
+ 
+-server.port=8084
+-ix.home="ginas.ix"
+-application.host= "http://localhost:8081"
++application.host="http://localhost:8080"
++application.host=${?APPLICATION_HOST}
+ 
+-spring.application.name="products"
+-#this is what it registers under eureka
+-eureka.instance.hostname="products"
++# Secure session off for dev, but if using HTTPS it's better to have it on
++gsrs.sessions.sessionSecure=false
+ 
+-#turn off eureka for now
+-eureka.client.enabled=false
++# Since this currently extends substances, we must turn off molwitch
++# or else need to implement it
++gsrs.substances.molwitch.enabled=false
++
++# PUT YOUR PERSONAL EXTENSIONS AND ADDITIONS HERE
++#debug=true
++spring.main.allow-bean-definition-overriding=true
+ 
+ ##################################################################
+ # SPRING BOOT ACTUATOR SETTINGS FOR MICROSERVICE HEALTH CHECKS  ##
+ ##################################################################
++
+ # turn off rabbit mq check for now since we don't use it otherwise it wil say we ar down
+ management.health.rabbit.enabled: false
+ 
+-# PUT YOUR PERSONAL EXTENSIONS AND ADDITIONS HERE
+-#debug=true
+-spring.main.allow-bean-definition-overriding=true
++##################################################################
++# EUREKA SETTINGS                                               ##
++##################################################################
+ 
+-#this is how HOCON does default values
+-eureka.client.serviceUrl.defaultZone= "http://localhost:8761/eureka"
++eureka.instance.hostname=${spring.application.name}
++eureka.client.serviceUrl.defaultZone="http://localhost:8761/eureka"
++eureka.client.serviceUrl.defaultZone=${?EUREKA_SERVICE_URL}
++#turn off eureka for now
++eureka.client.enabled=false
++eureka.client.enabled=${?EUREKA_CLIENT_ENABLED}
+ 
+-ix.h2 {
+-        base = ./${ix.home}/h2
+-      }
++##################################################################
++# SUBSTANCES DATABASE CONNECTION                                ##
++##################################################################
++
++spring.datasource.url="jdbc:h2:file:substances.ix/h2/sprinxight;MODE=Oracle;AUTO_SERVER=TRUE"
++spring.datasource.url="jdbc:"${?DB_HOST}"substances"
++spring.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_SUBSTANCES}
++spring.datasource.url=${?DB_URL_SUBSTANCES}
++spring.datasource.username=${?DB_USERNAME}
++spring.datasource.password=${?DB_PASSWORD}
++spring.jpa.database-platform=${?DB_DIALECT}
++spring.jpa.hibernate.ddl-auto=none
++spring.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
++spring.hibernate.show-sql=false
+ 
+ ##################################################################
+ # DATABASE CONNECTION                                           ##
+ ##################################################################
+ 
+-# H2 Database Connection
+-spring.datasource.url="jdbc:h2:file:../substances/ginas.ix/h2/sprinxight;MODE=Oracle;AUTO_SERVER=TRUE"
+-spring.datasource.driverClassName=org.h2.Driver
+-spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+-# Should be "none" when not testing locally with H2
+-spring.jpa.hibernate.ddl-auto=update
++ix.h2 {
++        base = ./${ix.home}/h2
++      }
+ 
+ product.datasource.url="jdbc:h2:"${ix.h2.base}"/appinxight;MODE=Oracle;AUTO_SERVER=TRUE"
+-product.datasource.driverClassName=org.h2.Driver
+-product.jpa.database-platform=org.hibernate.dialect.H2Dialect
+-# Should be "none" when not testing locally with H2
++product.datasource.url="jdbc:"${?DB_HOST}${spring.application.name}
++product.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_PRODUCTS}
++product.datasource.url=${?DB_URL_PRODUCTS}
++product.datasource.username=${?DB_USERNAME}
++product.datasource.password=${?DB_PASSWORD}
++product.jpa.database-platform=${?DB_DIALECT}
+ product.jpa.hibernate.ddl-auto=update
++product.jpa.hibernate.ddl-auto=${?DB_DDL_AUTO}
++product.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
++product.hibernate.show-sql=false
++
++##################################################################
++# API SETTINGS                                                  ##
++##################################################################
+ 
+-# !!!!! IMPORTANT, KEEP TO "none" for non-memory databases such as ORACLE, MYSQL, etc.
+-# Otherwise all the tables can be dropped or deleted
+-# Uncomment when NOT testing locally
+-# spring.jpa.hibernate.ddl-auto=none
+-# product.jpa.hibernate.ddl-auto=none
++substanceAPI.BaseUrl=${application.host}"/"
++substanceAPI.BaseUrl=${?API_URL}
+ 
+ ##################################################################
+ # CONFIGURATIONS VALIDATORS, PROCESSORS, EXPORT, etc            ##
+@@ -74,11 +97,11 @@ gsrs.validators.products = [
+ gsrs.entityProcessors = [
+     {
+         "class" = "gov.hhs.gsrs.products.product.models.Product",
+-		"processor" = "gov.hhs.gsrs.products.product.processors.ProductProcessor"
++        "processor" = "gov.hhs.gsrs.products.product.processors.ProductProcessor"
+     },
+     {
+         "class" = "gov.hhs.gsrs.products.productelist.models.ProductElist",
+-		"processor" = "gov.hhs.gsrs.products.productelist.processors.ProductElistProcessor"
++        "processor" = "gov.hhs.gsrs.products.productelist.processors.ProductElistProcessor"
+     },
+     {
+         "class" = "gov.hhs.gsrs.products.productall.models.ProductMainAll",
+@@ -97,7 +120,8 @@ gsrs.indexers.list=[
+     }
+ ]
+ 
++##################################################################
++# CUSTOM CONFIGURATION                                          ##
++##################################################################
+ 
+-
+-# Secure session off for dev, but if using HTTPS it's better to have it on
+-gsrs.sessions.sessionSecure=false
++include file("conf/products.conf")
+diff --git a/substances/src/main/resources/META-INF/context.xml b/substances/src/main/resources/META-INF/context.xml
+new file mode 100644
+index 0000000..4ffab65
+--- /dev/null
++++ b/substances/src/main/resources/META-INF/context.xml
+@@ -0,0 +1,3 @@
++<Context path="/substances" docBase="substances">
++    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-\d+\.\d+\.\d+\.\d+}"/>
++</Context>
+diff --git a/substances/src/main/resources/application.conf b/substances/src/main/resources/application.conf
+index ced66f9..19cc641 100644
+--- a/substances/src/main/resources/application.conf
++++ b/substances/src/main/resources/application.conf
+@@ -1,74 +1,94 @@
+ include "substances-core.conf"
+ 
+-application.host="http://localhost:8081"
+-ix.home="ginas.ix"
++##################################################################
++# MAIN CONFIGURATION                                            ##
++##################################################################
+ 
+ spring.application.name="substances"
++server.servlet.context-path="/"${spring.application.name}
++ix.home=${spring.application.name}".ix"
+ 
+-##################################################################
+-# SPRING BOOT ACTUATOR SETTINGS FOR MICROSERVICE HEALTH CHECKS  ##
+-##################################################################
+-# turn off rabbit mq check for now since we don't use it otherwise it will say we are down
+-management.health.rabbit.enabled: false
++application.host="http://localhost:8080"
++application.host=${?APPLICATION_HOST}
+ 
+-server.port=8080
+-ix.ginas.approvalIdGenerator.generatorClass="ix.ginas.utils.UNIIGenerator"
++# Secure session off for dev, but if using HTTPS it's better to have it on
++gsrs.sessions.sessionSecure=false
++
++gsrs.substances.molwitch.enabled=true
+ 
+ # PUT YOUR PERSONAL EXTENSIONS AND ADDITIONS HERE
+ #debug=true
+ spring.main.allow-bean-definition-overriding=true
+ 
+-#this is how HOCON does default values
+-#eureka.client.serviceUrl.defaultZone= "http://localhost:8761/eureka"
++# export path
++ix.ginas.export.path = "./exports"
++
++##################################################################
++# SPRING BOOT ACTUATOR SETTINGS FOR MICROSERVICE HEALTH CHECKS  ##
++##################################################################
++
++# turn off rabbit mq check for now since we don't use it otherwise it wil say we ar down
++management.health.rabbit.enabled: false
++
++##################################################################
++# EUREKA SETTINGS                                               ##
++##################################################################
++
++eureka.instance.hostname=${spring.application.name}
++eureka.client.serviceUrl.defaultZone="http://localhost:8761/eureka"
++eureka.client.serviceUrl.defaultZone=${?EUREKA_SERVICE_URL}
++#turn off eureka for now
+ eureka.client.enabled=false
++eureka.client.enabled=${?EUREKA_CLIENT_ENABLED}
++
++##################################################################
++# DATABASE CONNECTION                                           ##
++##################################################################
+ 
+ ix.h2 {
+         base = ./${ix.home}/h2
+       }
+-spring.datasource.url="jdbc:h2:"${ix.h2.base}"/sprinxight;MODE=Oracle;AUTO_SERVER=TRUE"
+-spring.datasource.driverClassName=org.h2.Driver
+-spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
++
++spring.datasource.url="jdbc:h2:"${ix.h2.base}"/appinxight;MODE=Oracle;AUTO_SERVER=TRUE"
++spring.datasource.url="jdbc:"${?DB_HOST}"substances"
++spring.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_SUBSTANCES}
++spring.datasource.url=${?DB_URL_SUBSTANCES}
++spring.datasource.username=${?DB_USERNAME}
++spring.datasource.password=${?DB_PASSWORD}
++spring.jpa.database-platform=${?DB_DIALECT}
+ spring.jpa.hibernate.ddl-auto=update
++spring.jpa.hibernate.ddl-auto=${?DB_DDL_AUTO}
++spring.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
++spring.hibernate.show-sql=false
+ 
+-# NEED THIS for Applications-api, Products-api and ClinicalTrialsUS/Europe-Api
+-gsrs.microservice.applications.api.baseURL="http://localhost:8081/"
+-gsrs.microservice.products.api.baseURL="http://localhost:8081/"
+-gsrs.microservice.clinicaltrialsus.api.baseURL="http://localhost:8081/"
+-gsrs.microservice.clinicaltrialseurope.api.baseURL="http://localhost:8081/"
++##################################################################
++# API SETTINGS                                                  ##
++##################################################################
+ 
+-# Secure session off for dev, but if using HTTPS it's better to have it on
+-gsrs.sessions.sessionSecure=false
++substanceAPI.BaseUrl=${application.host}"/"
++substanceAPI.BaseUrl=${?API_URL}
++gsrs.microservice.applications.api.baseURL=${substanceAPI.BaseUrl}"applications"
++gsrs.microservice.applications.api.baseURL=${?MS_URL_APPLICATIONS}
++gsrs.microservice.clinicaltrialsus.api.baseURL=${substanceAPI.BaseUrl}"clinical-trials"
++gsrs.microservice.clinicaltrialsus.api.baseURL=${?MS_URL_CLINICAL_TRIALS}
++gsrs.microservice.clinicaltrialsus.api.baseURL=${?MS_URL_CLINICAL_TRIALS_US}
++gsrs.microservice.clinicaltrialseurope.api.baseURL=${substanceAPI.BaseUrl}"clinical-trials"
++gsrs.microservice.clinicaltrialseurope.api.baseURL=${?MS_URL_CLINICAL_TRIALS}
++gsrs.microservice.clinicaltrialseurope.api.baseURL=${?MS_URL_CLINICAL_TRIALS_EUROPE}
++gsrs.microservice.products.api.baseURL=${substanceAPI.BaseUrl}"products"
++gsrs.microservice.products.api.baseURL=${?MS_URL_PRODUCTS}
++
++##################################################################
++# CONFIGURATIONS VALIDATORS, PROCESSORS, EXPORT, etc            ##
++##################################################################
+ 
+-# Standardize Names in accordance with FDA rules
+-# Uncomment to add name standardization functionality
+-#gsrs.validators.substances += {
+-#          "validatorClass" = "ix.ginas.utils.validation.validators.StandardNameValidator",
+-#          "newObjClass" = "ix.ginas.models.v1.Substance",
+-#          "configClass" = "SubstanceValidatorConfig",
+-#          "parameters"= {
+-#             "inPlaceNameStandardizerClass":"gsrs.module.substance.utils.FDAMinimumNameStandardizer",
+-#             "fullNameStandardizerClass":"gsrs.module.substance.utils.FDAFullNameStandardizer",
+-#             "behaviorOnInvalidStdName": "error"
+-#          }
+-# }
+-
+-
+-
+-# Manage tags/bracketed terms in names per FDA configuration.
+-# In FDA's case:
+-# No automatic addition in tags found in names to explicit tag list.
+-# No automatic deletion of explicit tags missing from bracketed terms.
+-# Warnings off for bracket name missing from tags; warning on for explicit tag missing from names. 
+-# gsrs.validators.substances += {
+-#    "validatorClass" = "ix.ginas.utils.validation.validators.tags.TagsValidator",
+-#    "newObjClass" = "ix.ginas.models.v1.Substance",
+-#    "parameters" = {
+-#        "checkExplicitTagsExtractedFromNames": false,
+-#        "checkExplicitTagsMissingFromNames": true,
+-#        "addExplicitTagsExtractedFromNamesOnCreate": false,
+-#        "addExplicitTagsExtractedFromNamesOnUpdate": false,
+-#        "removeExplicitTagsMissingFromNamesOnCreate": false,
+-#        "removeExplicitTagsMissingFromNamesOnUpdate": false
+-#    }
+-# }
++ix.ginas.approvalIdGenerator.generatorClass="ix.ginas.utils.UNIIGenerator"
++ix.ginas.approvalIdGenerator.generatorClass=${?APPROVALID_GENERATOR}
++ix.ginas.approvalIdGenerator.parameters.name=${?APPROVALID_NAME}
++ix.ginas.approvalIdGenerator.parameters.codeSystem=${?APPROVALID_CODESYSTEM}
++
++##################################################################
++# CUSTOM CONFIGURATION                                          ##
++##################################################################
+ 
++include file("conf/substances.conf")
