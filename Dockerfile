@@ -7,7 +7,8 @@ FROM maven:3.6.3-jdk-11 as build
     ARG MODULE_IGNORE=
 
     COPY patches /patches
-    RUN git clone --recursive --depth=1 --branch ${GSRS_TAG} https://github.com/ncats/gsrs3-main-deployment.git && \
+    RUN apt-get update && apt-get install -y --no-install-recommends patch && \
+        git clone --recursive --depth=1 --branch ${GSRS_TAG} https://github.com/ncats/gsrs3-main-deployment.git && \
         cd gsrs3-main-deployment && \
         find /patches -type f -name '*.patch' -print0 -exec patch -p1 -i {} \; && \
         mkdir -p ${CATALINA_HOME}/conf/Catalina/localhost ${CATALINA_HOME}/webapps && \
@@ -23,6 +24,7 @@ FROM maven:3.6.3-jdk-11 as build
             rm -rf ${module} ; done && \
         [ -d ${CATALINA_HOME}/webapps/substances ] && jar xf ${CATALINA_HOME}/webapps/substances/WEB-INF/lib/gsrs-module-substances-core-${GSRS_VER}.jar logback-spring.xml.backup ; \
         [ -f logback-spring.xml.backup ] && sed -i "s/\$.user.dir.\/logs/\$\{LOGS\}/g" logback-spring.xml.backup ; \
+        [ -f logback-spring.xml.backup ] && sed -i "s/\$.user.dir./\$\{LOGS\}/g" logback-spring.xml.backup ; \
         [ -f logback-spring.xml.backup ] && sed -i "s/INFO,DEBUG,WARN,ERROR/\$\{log.level:-info\}/g" logback-spring.xml.backup ; \
         [ -f logback-spring.xml.backup ] && mv logback-spring.xml.backup ${CATALINA_HOME}/webapps/substances/WEB-INF/classes/logback-spring.xml ; \
         [ -d ${CATALINA_HOME}/webapps/gateway ] && mv ${CATALINA_HOME}/webapps/gateway ${CATALINA_HOME}/webapps/ROOT ; \
@@ -39,8 +41,8 @@ FROM maven:3.6.3-jdk-11 as build
 
 FROM tomcat:9-jre11
     ENV CATALINA_HOME=/usr/local/tomcat
-    ENV CATALINA_OPTS="-Xms12g -Xmx12g -XX:ReservedCodeCacheSize=512m -Dgateway.allow.pattern=127\.\d+\.\d+\.\d+ -Ddepoly.ignore.pattern=(adverse-events|applications|clinical-trials|impurities|products)"
     RUN rm -rf ${CATALINA_HOME}/temp && \
+        sed -i "s/logs/\/home\/logs/g" ${CATALINA_HOME}/conf/server.xml && \
         sed -i "s/connectionTimeout/maxPostSize=\"536870912\" connectionTimeout/g" ${CATALINA_HOME}/conf/server.xml && \
         sed -i "s/unpackWARs=\"true\" autoDeploy=\"true\"/unpackWARs=\"false\" autoDeploy=\"false\" deployIgnore=\"\$\{deploy.ignore.pattern:-(adverse-events|applications|clinical-trials|impurities|products)\}\"/g" ${CATALINA_HOME}/conf/server.xml && \
         sed -i "s/\$.catalina.base././g" ${CATALINA_HOME}/conf/logging.properties && \

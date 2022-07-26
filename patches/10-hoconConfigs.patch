@@ -1,8 +1,8 @@
-diff --git a/adverse-events/src/main/resources/META-INF/context.xml b/adverse-events/src/main/resources/META-INF/context.xml
+diff --git a/adverse-events/src/main/webapp/META-INF/context.xml b/adverse-events/src/main/webapp/META-INF/context.xml
 new file mode 100644
 index 0000000..4463387
 --- /dev/null
-+++ b/adverse-events/src/main/resources/META-INF/context.xml
++++ b/adverse-events/src/main/webapp/META-INF/context.xml
 @@ -0,0 +1,3 @@
 +<Context path="/adverse-events" docBase="adverse-events">
 +    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-127\.\d+\.\d+\.\d+}"/>
@@ -151,11 +151,11 @@ index dd73fed..48edccd 100644
 +##################################################################
 +
 +include file("conf/adverse-events.conf")
-diff --git a/applications/src/main/resources/META-INF/context.xml b/applications/src/main/resources/META-INF/context.xml
+diff --git a/applications/src/main/webapp/META-INF/context.xml b/applications/src/main/webapp/META-INF/context.xml
 new file mode 100644
 index 0000000..c9c02e8
 --- /dev/null
-+++ b/applications/src/main/resources/META-INF/context.xml
++++ b/applications/src/main/webapp/META-INF/context.xml
 @@ -0,0 +1,3 @@
 +<Context path="/applications" docBase="applications">
 +    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-127\.\d+\.\d+\.\d+}"/>
@@ -335,11 +335,11 @@ index a7a5a6e..7a41904 100644
 -# Secure session off for dev, but if using HTTPS it's better to have it on
 -gsrs.sessions.sessionSecure=false
 +include file("conf/applications.conf")
-diff --git a/clinical-trials/src/main/resources/META-INF/context.xml b/clinical-trials/src/main/resources/META-INF/context.xml
+diff --git a/clinical-trials/src/main/webapp/META-INF/context.xml b/clinical-trials/src/main/webapp/META-INF/context.xml
 new file mode 100644
 index 0000000..d5d8a0d
 --- /dev/null
-+++ b/clinical-trials/src/main/resources/META-INF/context.xml
++++ b/clinical-trials/src/main/webapp/META-INF/context.xml
 @@ -0,0 +1,3 @@
 +<Context path="/clinical-trials" docBase="clinical-trials">
 +    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-127\.\d+\.\d+\.\d+}"/>
@@ -700,11 +700,11 @@ index 6a6ca33..a9a6867 100644
      </dependencies>
  
      <build>
-diff --git a/frontend/src/main/resources/META-INF/context.xml b/frontend/src/main/resources/META-INF/context.xml
+diff --git a/frontend/src/main/webapp/META-INF/context.xml b/frontend/src/main/webapp/META-INF/context.xml
 new file mode 100644
 index 0000000..b1bc9ce
 --- /dev/null
-+++ b/frontend/src/main/resources/META-INF/context.xml
++++ b/frontend/src/main/webapp/META-INF/context.xml
 @@ -0,0 +1,4 @@
 +<Context path="/frontend" docBase="frontend">
 +    <Resources cacheMaxSize="40960"/>
@@ -1184,11 +1184,11 @@ index cf3b71e..0000000
 -
 -#Keeps + encoded characters encoded as +
 -zuul.forceOriginalQueryStringEncoding: true
-diff --git a/impurities/src/main/resources/META-INF/context.xml b/impurities/src/main/resources/META-INF/context.xml
+diff --git a/impurities/src/main/webapp/META-INF/context.xml b/impurities/src/main/webapp/META-INF/context.xml
 new file mode 100644
 index 0000000..4b17cce
 --- /dev/null
-+++ b/impurities/src/main/resources/META-INF/context.xml
++++ b/impurities/src/main/webapp/META-INF/context.xml
 @@ -0,0 +1,3 @@
 +<Context path="/impurities" docBase="impurities">
 +    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-127\.\d+\.\d+\.\d+}"/>
@@ -1343,11 +1343,11 @@ index 79fcbce..2a61c5a 100644
 -# Secure session off for dev, but if using HTTPS it's better to have it on
 -gsrs.sessions.sessionSecure=false
 +include file("conf/impurities.conf")
-diff --git a/products/src/main/resources/META-INF/context.xml b/products/src/main/resources/META-INF/context.xml
+diff --git a/products/src/main/webapp/META-INF/context.xml b/products/src/main/webapp/META-INF/context.xml
 new file mode 100644
 index 0000000..c43535e
 --- /dev/null
-+++ b/products/src/main/resources/META-INF/context.xml
++++ b/products/src/main/webapp/META-INF/context.xml
 @@ -0,0 +1,3 @@
 +<Context path="/products" docBase="products">
 +    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-127\.\d+\.\d+\.\d+}"/>
@@ -1505,11 +1505,11 @@ index 7cf6242..6c86c9e 100644
 -# Secure session off for dev, but if using HTTPS it's better to have it on
 -gsrs.sessions.sessionSecure=false
 +include file("conf/products.conf")
-diff --git a/substances/src/main/resources/META-INF/context.xml b/substances/src/main/resources/META-INF/context.xml
+diff --git a/substances/src/main/webapp/META-INF/context.xml b/substances/src/main/webapp/META-INF/context.xml
 new file mode 100644
 index 0000000..4ffab65
 --- /dev/null
-+++ b/substances/src/main/resources/META-INF/context.xml
++++ b/substances/src/main/webapp/META-INF/context.xml
 @@ -0,0 +1,3 @@
 +<Context path="/substances" docBase="substances">
 +    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-\d+\.\d+\.\d+\.\d+}"/>
