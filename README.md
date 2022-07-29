@@ -94,6 +94,7 @@ The custom configuration file for the "gateway" module: /home/conf/gateway.conf
 - EUREKA_CLIENT_ENABLED (false)
 - EUREKA_SERVICE_URL (http://localhost:8761/eureka)
 - FRONTEND_ROUTE_PREFIX (ginas/app/beta)
+- FRONTEND_CONFIG_DIR (classpath:/static/assets/data)
 - MS_URL_ADVERSE_EVENTS (http://localhost:8080/adverse-events)
 - MS_URL_APPLICATIONS (http://localhost:8080/applications)
 - MS_URL_CLINICAL_TRIALS (http://localhost:8080/clinical-trials)

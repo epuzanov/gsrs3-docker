@@ -723,7 +723,7 @@ new file mode 100644
 index 0000000..e12b727
 --- /dev/null
 +++ b/frontend/src/main/resources/application.conf
-@@ -0,0 +1,27 @@
+@@ -0,0 +1,29 @@
 +##################################################################
 +# MAIN CONFIGURATION                                            ##
 +##################################################################
@@ -734,6 +734,8 @@ index 0000000..e12b727
 +#this is the prefix path for the front end
 +route.prefix="ginas/app/beta/"
 +route.prefix=${?FRONTEND_ROUTE_PREFIX}
++gsrs.frontend.config.dir="classpath:/static/assets/data"
++gsrs.frontend.config.dir=${?FRONTEND_CONFIG_DIR}
 +
 +##################################################################
 +# EUREKA SETTINGS                                               ##
