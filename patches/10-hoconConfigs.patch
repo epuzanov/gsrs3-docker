@@ -1520,7 +1520,7 @@ diff --git a/substances/src/main/resources/application.conf b/substances/src/mai
 index ced66f9..19cc641 100644
 --- a/substances/src/main/resources/application.conf
 +++ b/substances/src/main/resources/application.conf
-@@ -1,74 +1,94 @@
+@@ -1,74 +1,105 @@
  include "substances-core.conf"
  
 -application.host="http://localhost:8081"
@@ -1662,6 +1662,17 @@ index ced66f9..19cc641 100644
 +ix.ginas.approvalIdGenerator.generatorClass=${?APPROVALID_GENERATOR}
 +ix.ginas.approvalIdGenerator.parameters.name=${?APPROVALID_NAME}
 +ix.ginas.approvalIdGenerator.parameters.codeSystem=${?APPROVALID_CODESYSTEM}
++
++##################################################################
++# LEGACY AUTHENTICATION                                         ##
++##################################################################
++
++ix.authentication.allownonauthenticated = ${?AUTH_ALLOW_NONAUTH}
++ix.authentication.sysadmin-email = ${?AUTH_SYSADMIN_EMAIL}
++ix.authentication.trustheader = ${?AUTH_TRUST_HEADER}
++ix.authentication.usernameheader = ${?AUTH_USERNAME_HEADER}
++ix.authentication.useremailheader = ${?AUTH_EMAIL_HEADER}
++ix.authentication.userrolesheader = ${?AUTH_ROLES_HEADER}
 +
 +##################################################################
 +# CUSTOM CONFIGURATION                                          ##
