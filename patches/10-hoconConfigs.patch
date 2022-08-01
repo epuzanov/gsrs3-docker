@@ -121,7 +121,7 @@ index dd73fed..48edccd 100644
 +# API SETTINGS                                                  ##
 +##################################################################
 +
-+substanceAPI.BaseUrl=${application.host}"/"
++substanceAPI.BaseUrl="http://localhost:8080/"
 +substanceAPI.BaseUrl=${?API_URL}
  
  ##################################################################
@@ -281,7 +281,7 @@ index a7a5a6e..7a41904 100644
 -# Uncomment when NOT testing locally
 -# spring.jpa.hibernate.ddl-auto=none
 -# application.jpa.hibernate.ddl-auto=none
-+substanceAPI.BaseUrl=${application.host}"/"
++substanceAPI.BaseUrl="http://localhost:8080/"
 +substanceAPI.BaseUrl=${?API_URL}
  
  ##################################################################
@@ -459,7 +459,7 @@ index e32895e..d14e391 100644
  
 -server.tomcat.relaxed-query-chars="<,>,[,\\,],^,`,{,|,}"
 -server.tomcat.relaxed-path-chars="<,>,[,\\,],^,`,{,|,}"
-+substanceAPI.BaseUrl=${application.host}"/"
++substanceAPI.BaseUrl="http://localhost:8080/"
 +substanceAPI.BaseUrl=${?API_URL}
 +gsrs.microservice.substances.api.baseURL=${substanceAPI.BaseUrl}
 +gsrs.microservice.substances.api.baseURL=${?MS_API_URL}
@@ -834,7 +834,7 @@ index 0000000..0cc5a0d
 +# API SETTINGS                                                  ##
 +##################################################################
 +
-+substanceAPI.BaseUrl=${application.host}"/"
++substanceAPI.BaseUrl="http://localhost:8080/"
 +substanceAPI.BaseUrl=${?API_URL}
 +gsrs.microservice.adverseevents.api.baseURL=${substanceAPI.BaseUrl}"adverse-events"
 +gsrs.microservice.adverseevents.api.baseURL=${?MS_URL_ADVERSE_EVENTS}
@@ -853,7 +853,7 @@ index 0000000..0cc5a0d
 +gsrs.microservice.products.api.baseURL=${substanceAPI.BaseUrl}"products"
 +gsrs.microservice.products.api.baseURL=${?MS_URL_PRODUCTS}
 +gsrs.microservice.substances.api.baseURL=${substanceAPI.BaseUrl}"substances"
-+gsrs.microservice.substances.api.baseURL=${?MS_API_URL}
++gsrs.microservice.substances.api.baseURL=${?MS_URL_SUBSTANCES}
 +
 +##################################################################
 +# ZUUL ROUTES CONFIGURATION                                     ##
@@ -1317,7 +1317,7 @@ index 79fcbce..2a61c5a 100644
 -# Uncomment when NOT testing locally
 -# spring.jpa.hibernate.ddl-auto=none
 -# impurities.jpa.hibernate.ddl-auto=none
-+substanceAPI.BaseUrl=${application.host}"/"
++substanceAPI.BaseUrl="http://localhost:8080/"
 +substanceAPI.BaseUrl=${?API_URL}
  
  ##################################################################
@@ -1476,7 +1476,7 @@ index 7cf6242..6c86c9e 100644
 -# Uncomment when NOT testing locally
 -# spring.jpa.hibernate.ddl-auto=none
 -# product.jpa.hibernate.ddl-auto=none
-+substanceAPI.BaseUrl=${application.host}"/"
++substanceAPI.BaseUrl="http://localhost:8080/"
 +substanceAPI.BaseUrl=${?API_URL}
  
  ##################################################################
@@ -1609,7 +1609,7 @@ index ced66f9..19cc641 100644
  
 -# Secure session off for dev, but if using HTTPS it's better to have it on
 -gsrs.sessions.sessionSecure=false
-+substanceAPI.BaseUrl=${application.host}"/"
++substanceAPI.BaseUrl="http://localhost:8080/"
 +substanceAPI.BaseUrl=${?API_URL}
 +gsrs.microservice.applications.api.baseURL=${substanceAPI.BaseUrl}"applications"
 +gsrs.microservice.applications.api.baseURL=${?MS_URL_APPLICATIONS}
