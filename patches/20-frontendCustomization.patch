@@ -52,7 +52,7 @@ index e7cb1c0..b9491a6 100644
 +                                indexPage = new PathResource(fp);
 +                            }
 +                            if (resourcePath.startsWith("assets/data/")
-+                                    || resourcePath.startsWith("assets/images/home/")
++                                    || resourcePath.startsWith("assets/images/")
 +                                    || resourcePath.endsWith("styles.custom.css")) {
 +                                fp = Paths.get(frontendConfigDir + "/" + resourcePath.substring(resourcePath.lastIndexOf("/")+1));
 +                                if (Files.isReadable(fp)) {
