@@ -798,7 +798,7 @@ new file mode 100644
 index 0000000..0cc5a0d
 --- /dev/null
 +++ b/gateway/src/main/resources/application.conf
-@@ -0,0 +1,277 @@
+@@ -0,0 +1,279 @@
 +##################################################################
 +# MAIN CONFIGURATION                                            ##
 +##################################################################
@@ -1065,6 +1065,8 @@ index 0000000..0cc5a0d
 +##################################################################
 +
 +ix.authentication.allownonauthenticated = ${?AUTH_ALLOW_NONAUTH}
++ix.authentication.autoregister = ${?AUTH_AUTOREGISTER}
++ix.authentication.autoregisteractive = ${?AUTH_AUTOREGISTERACTIVE}
 +ix.authentication.sysadmin-email = ${?AUTH_SYSADMIN_EMAIL}
 +ix.authentication.trustheader = ${?AUTH_TRUST_HEADER}
 +ix.authentication.usernameheader = ${?AUTH_USERNAME_HEADER}
@@ -1520,7 +1522,7 @@ diff --git a/substances/src/main/resources/application.conf b/substances/src/mai
 index ced66f9..19cc641 100644
 --- a/substances/src/main/resources/application.conf
 +++ b/substances/src/main/resources/application.conf
-@@ -1,74 +1,105 @@
+@@ -1,74 +1,107 @@
  include "substances-core.conf"
  
 -application.host="http://localhost:8081"
@@ -1668,6 +1670,8 @@ index ced66f9..19cc641 100644
 +##################################################################
 +
 +ix.authentication.allownonauthenticated = ${?AUTH_ALLOW_NONAUTH}
++ix.authentication.autoregister = ${?AUTH_AUTOREGISTER}
++ix.authentication.autoregisteractive = ${?AUTH_AUTOREGISTERACTIVE}
 +ix.authentication.sysadmin-email = ${?AUTH_SYSADMIN_EMAIL}
 +ix.authentication.trustheader = ${?AUTH_TRUST_HEADER}
 +ix.authentication.usernameheader = ${?AUTH_USERNAME_HEADER}
