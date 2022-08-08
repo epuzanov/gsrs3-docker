@@ -1,28 +1,16 @@
 diff --git a/frontend/src/main/java/gov/nih/ncats/gsrsfrontend/config/MvcConfiguration.java b/frontend/src/main/java/gov/nih/ncats/gsrsfrontend/config/MvcConfiguration.java
-index e7cb1c0..b9491a6 100644
+index e7cb1c0..940eba2 100644
 --- a/frontend/src/main/java/gov/nih/ncats/gsrsfrontend/config/MvcConfiguration.java
 +++ b/frontend/src/main/java/gov/nih/ncats/gsrsfrontend/config/MvcConfiguration.java
-@@ -1,7 +1,13 @@
- package gov.nih.ncats.gsrsfrontend.config;
+@@ -2,6 +2,7 @@ package gov.nih.ncats.gsrsfrontend.config;
  
-+import java.io.IOException;
-+import java.nio.file.Files;
-+import java.nio.file.Path;
-+import java.nio.file.Paths;
-+
  import org.springframework.context.annotation.Configuration;
  import org.springframework.core.io.ClassPathResource;
-+import org.springframework.core.io.PathResource;
++import org.springframework.core.io.FileSystemResource;
  import org.springframework.core.io.Resource;
  import org.springframework.stereotype.Component;
  import org.springframework.web.servlet.config.annotation.CorsRegistry;
-@@ -10,30 +16,42 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
- import org.springframework.web.servlet.resource.PathResourceResolver;
- import org.springframework.beans.factory.annotation.Value;
- 
--import java.io.IOException;
--
- @Configuration
+@@ -16,24 +17,36 @@ import java.io.IOException;
  public class MvcConfiguration implements WebMvcConfigurer {
      @Value("${route.prefix:ginas/app/beta/}")
      private String prefix = "ginas/app/beta/";
@@ -31,6 +19,8 @@ index e7cb1c0..b9491a6 100644
 -    //This is so all the front end refresh/ non-existing files default back to index.html
 +    @Value("${gsrs.frontend.config.dir:classpath:/static/assets/data}")
 +    private String frontendConfigDir = "classpath:/static/assets/data";
++
++    private final Resource indexPage = new ClassPathResource("/static/index.html");
 +
      @Override
      public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -45,25 +35,22 @@ index e7cb1c0..b9491a6 100644
 -                               resourcePath = resourcePath.substring(prefix.length());
 +                            resourcePath = resourcePath.substring(prefix.length());
 +                        }
-+                        Resource indexPage = new ClassPathResource("/static/index.html");
++                        Resource requestedResource;
 +                        if (!frontendConfigDir.startsWith("classpath:/")) {
-+                            Path fp = Paths.get(frontendConfigDir + "/index.html");
-+                            if (Files.isReadable(fp)) {
-+                                indexPage = new PathResource(fp);
-+                            }
 +                            if (resourcePath.startsWith("assets/data/")
 +                                    || resourcePath.startsWith("assets/images/")
 +                                    || resourcePath.endsWith("styles.custom.css")) {
-+                                fp = Paths.get(frontendConfigDir + "/" + resourcePath.substring(resourcePath.lastIndexOf("/")+1));
-+                                if (Files.isReadable(fp)) {
-+                                    return new PathResource(fp);
++                                requestedResource = new FileSystemResource(frontendConfigDir + "/" + resourcePath.substring(resourcePath.lastIndexOf("/")+1));
++                                if (requestedResource.exists() && requestedResource.isReadable()) {
++                                    return requestedResource;
 +                                }
 +                            }
                          }
-                         Resource requestedResource = location.createRelative(resourcePath);
+-                        Resource requestedResource = location.createRelative(resourcePath);
 -                        
 -                        return (requestedResource.exists() && requestedResource.isReadable()) ? requestedResource
 -                                : new ClassPathResource("/static/index.html");
++                        requestedResource = location.createRelative(resourcePath);
 +                        return (requestedResource.exists() && requestedResource.isReadable()) ? requestedResource : indexPage;
                      }
                  });
@@ -93,7 +80,7 @@ index 025d458..1db2b35 100644
  <script src="runtime.69cf5377ca80e86d.js" type="module"></script><script src="polyfills.13822991a2edc31a.js" type="module"></script><script src="main.f1db43f6837b6341.js" type="module"></script>
 diff --git a/frontend/src/main/resources/static/styles.custom.css b/frontend/src/main/resources/static/styles.custom.css
 new file mode 100644
-index 0000000..b1bc9ce
+index 0000000..b05f867
 --- /dev/null
 +++ b/frontend/src/main/resources/static/styles.custom.css
 @@ -0,0 +1,3 @@
