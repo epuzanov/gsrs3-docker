@@ -1,0 +1,86 @@
+diff --git a/frontend/src/main/java/gov/nih/ncats/gsrsfrontend/config/MvcConfiguration.java b/frontend/src/main/java/gov/nih/ncats/gsrsfrontend/config/MvcConfiguration.java
+index e7cb1c0..f549114 100644
+--- a/frontend/src/main/java/gov/nih/ncats/gsrsfrontend/config/MvcConfiguration.java
++++ b/frontend/src/main/java/gov/nih/ncats/gsrsfrontend/config/MvcConfiguration.java
+@@ -1,7 +1,9 @@
+ package gov.nih.ncats.gsrsfrontend.config;
+ 
++import java.io.IOException;
+ import org.springframework.context.annotation.Configuration;
+ import org.springframework.core.io.ClassPathResource;
++import org.springframework.core.io.FileSystemResource;
+ import org.springframework.core.io.Resource;
+ import org.springframework.stereotype.Component;
+ import org.springframework.web.servlet.config.annotation.CorsRegistry;
+@@ -10,30 +12,40 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+ import org.springframework.web.servlet.resource.PathResourceResolver;
+ import org.springframework.beans.factory.annotation.Value;
+ 
+-import java.io.IOException;
+-
+ @Configuration
+ public class MvcConfiguration implements WebMvcConfigurer {
+     @Value("${route.prefix:ginas/app/beta/}")
+     private String prefix = "ginas/app/beta/";
+-    
+ 
+-    //This is so all the front end refresh/ non-existing files default back to index.html
++    @Value("${gsrs.frontend.config.dir:classpath:/static/assets/data}")
++    private String frontendConfigDir = "classpath:/static/assets/data";
++
++    private final Resource indexPage = new ClassPathResource("/static/index.html");
++
+     @Override
+     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+-           registry.addResourceHandler("/**")
++        registry.addResourceHandler("/**")
+                 .addResourceLocations("classpath:/static/")
+                 .resourceChain(true)
+                 .addResolver(new PathResourceResolver() {
+                     @Override
+                     protected Resource getResource(String resourcePath, Resource location) throws IOException {
+                         if(resourcePath.startsWith(prefix)){
+-                               resourcePath = resourcePath.substring(prefix.length());
++                            resourcePath = resourcePath.substring(prefix.length());
++                        }
++                        Resource requestedResource;
++                        if (!frontendConfigDir.startsWith("classpath:/")) {
++                            if (resourcePath.startsWith("assets/data/")
++                                    || resourcePath.startsWith("assets/images/")
++                                    || resourcePath.endsWith("styles.custom.css")) {
++                                requestedResource = new FileSystemResource(frontendConfigDir + "/" + resourcePath.substring(resourcePath.lastIndexOf("/")+1));
++                                if (requestedResource.exists() && requestedResource.isReadable()) {
++                                    return requestedResource;
++                                }
++                            }
+                         }
+-                        Resource requestedResource = location.createRelative(resourcePath);
+-                        
+-                        return (requestedResource.exists() && requestedResource.isReadable()) ? requestedResource
+-                                : new ClassPathResource("/static/index.html");
++                        requestedResource = location.createRelative(resourcePath);
++                        return (requestedResource.exists() && requestedResource.isReadable()) ? requestedResource : indexPage;
+                     }
+                 });
+     }
+diff --git a/frontend/src/main/resources/static/index.html b/frontend/src/main/resources/static/index.html
+index 8a2417f..a8b14ea 100644
+--- a/frontend/src/main/resources/static/index.html
++++ b/frontend/src/main/resources/static/index.html
+@@ -25,6 +25,7 @@
+   <meta name="theme-color" content="#ffffff">
+ <style>html,body{margin:0;width:100%;height:100%;font-family:Roboto,Helvetica Neue,sans-serif}body{background-color:#5e91ba1f}@-webkit-keyframes blinker{50%{opacity:0}}</style><link rel="stylesheet" href="styles.8aa8b9caf4bc05a4.css" media="print" onload="this.media=&apos;all&apos;"><noscript><link rel="stylesheet" href="styles.8aa8b9caf4bc05a4.css"></noscript></head>
+ 
++<link rel="stylesheet" href="styles.custom.css">
+ <body>
+   <app-root></app-root>
+ <script src="runtime.7886ff3a9656a8a3.js" type="module"></script><script src="polyfills.13822991a2edc31a.js" type="module"></script><script src="main.bc5f22d06e0efe4b.js" type="module"></script>
+diff --git a/frontend/src/main/resources/static/styles.custom.css b/frontend/src/main/resources/static/styles.custom.css
+new file mode 100644
+index 0000000..b05f867
+--- /dev/null
++++ b/frontend/src/main/resources/static/styles.custom.css
+@@ -0,0 +1,3 @@
++.mat-toolbar.mat-primary{
++    background:#4793d1;
++}
