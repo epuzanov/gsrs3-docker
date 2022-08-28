@@ -1,8 +1,8 @@
 FROM maven:3.6.3-jdk-11 as build
     ENV MAVEN_CONFIG=
     ENV CATALINA_HOME=/usr/local/tomcat
-    ARG GSRS_VER=3.0.1-SNAPSHOT
-    ARG GSRS_TAG=GSRSv3.0.1PUB
+    ARG GSRS_VER=3.0.2-SNAPSHOT
+    ARG GSRS_TAG=main
     #ARG MODULE_IGNORE="adverse-events applications clinical-trials products"
     ARG MODULE_IGNORE=
 
