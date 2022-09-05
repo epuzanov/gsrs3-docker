@@ -30,7 +30,6 @@ FROM maven:3.6.3-jdk-11 as build
         [ -d ${CATALINA_HOME}/webapps/gateway ] && mv ${CATALINA_HOME}/webapps/gateway ${CATALINA_HOME}/webapps/ROOT ; \
         [ -d ${CATALINA_HOME}/work/Catalina/localhost/gateway ] && mv ${CATALINA_HOME}/work/Catalina/localhost/gateway ${CATALINA_HOME}/work/Catalina/localhost/ROOT ; \
         cd ..
-
     RUN git clone https://github.com/epuzanov/gsrs-ep-substance-extension.git && \
         cd gsrs-ep-substance-extension && \
         [ -d ${CATALINA_HOME}/webapps/substances ] && ./mvnw clean -U package -DskipTests ; \
@@ -38,6 +37,9 @@ FROM maven:3.6.3-jdk-11 as build
         [ -f /root/.m2/repository/io/burt/jmespath-core/0.5.1/jmespath-core-0.5.1.jar ] && cp /root/.m2/repository/io/burt/jmespath-core/0.5.1/jmespath-core-0.5.1.jar ${CATALINA_HOME}/webapps/substances/WEB-INF/lib/ ; \
         [ -f /root/.m2/repository/io/burt/jmespath-jackson/0.5.1/jmespath-jackson-0.5.1.jar  ] && cp /root/.m2/repository/io/burt/jmespath-jackson/0.5.1/jmespath-jackson-0.5.1.jar ${CATALINA_HOME}/webapps/substances/WEB-INF/lib/ ; \
         cd ..
+    COPY libs/gsrs-module-substances-core-${GSRS_VER}.jar ${CATALINA_HOME}/webapps/substances/WEB-INF/lib/
+    COPY libs/gsrs-spring-boot-autoconfigure-${GSRS_VER}.jar ${CATALINA_HOME}/webapps/substances/WEB-INF/lib/
+
 
 FROM tomcat:9-jre11
     ENV CATALINA_HOME=/usr/local/tomcat
