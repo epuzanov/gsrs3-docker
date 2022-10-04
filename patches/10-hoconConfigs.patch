@@ -1,5 +1,5 @@
 diff --git a/adverse-events/src/main/resources/application.conf b/adverse-events/src/main/resources/application.conf
-index dd73fed..b28cb66 100644
+index dd73fed..91a85ce 100644
 --- a/adverse-events/src/main/resources/application.conf
 +++ b/adverse-events/src/main/resources/application.conf
 @@ -1,57 +1,86 @@
@@ -18,19 +18,19 @@ index dd73fed..b28cb66 100644
  spring.application.name="adverse-events"
 +server.servlet.context-path="/"${spring.application.name}
 +ix.home=${spring.application.name}".ix"
++
++application.host="http://localhost:8080"
++application.host=${?APPLICATION_HOST}
++
++# Secure session off for dev, but if using HTTPS it's better to have it on
++gsrs.sessions.sessionSecure=false
  
 -#this is what it registers under eureka
 -eureka.instance.hostname="adverse-events"
-+application.host="http://localhost:8080"
-+application.host=${?APPLICATION_HOST}
- 
-+# Secure session off for dev, but if using HTTPS it's better to have it on
-+gsrs.sessions.sessionSecure=false
-+
 +# Since this currently extends substances, we must turn off molwitch
 +# or else need to implement it
 +gsrs.substances.molwitch.enabled=false
-+
+ 
 +# PUT YOUR PERSONAL EXTENSIONS AND ADDITIONS HERE
 +#debug=true
 +spring.main.allow-bean-definition-overriding=true
@@ -64,11 +64,11 @@ index dd73fed..b28cb66 100644
 +##################################################################
 +
 +spring.datasource.url="jdbc:h2:file:substances.ix/h2/sprinxight;MODE=Oracle;AUTO_SERVER=TRUE"
-+spring.datasource.url="jdbc:"${?DB_HOST}"substances"
-+spring.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_SUBSTANCES}
 +spring.datasource.url=${?DB_URL_SUBSTANCES}
 +spring.datasource.username=${?DB_USERNAME}
 +spring.datasource.password=${?DB_PASSWORD}
++spring.datasource.connectionTimeout=${?DB_CONNECTION_TIMEOUT}
++spring.datasource.maximumPoolSize=${?DB_MAXIMUM_POOL_SIZE}
 +spring.jpa.database-platform=${?DB_DIALECT}
 +spring.jpa.hibernate.ddl-auto=none
 +spring.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
@@ -92,26 +92,26 @@ index dd73fed..b28cb66 100644
 -adverseevent.datasource.driverClassName=org.h2.Driver
 -adverseevent.jpa.database-platform=org.hibernate.dialect.H2Dialect
 -# Should be "none" when not testing locally with H2
-+adverseevent.datasource.url="jdbc:"${?DB_HOST}"adverseevents"
-+adverseevent.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_ADVERSE_EVENTS}
 +adverseevent.datasource.url=${?DB_URL_ADVERSE_EVENTS}
 +adverseevent.datasource.username=${?DB_USERNAME}
 +adverseevent.datasource.password=${?DB_PASSWORD}
++adverseevent.datasource.connectionTimeout=${?DB_CONNECTION_TIMEOUT}
++adverseevent.datasource.maximumPoolSize=${?DB_MAXIMUM_POOL_SIZE}
 +adverseevent.jpa.database-platform=${?DB_DIALECT}
  adverseevent.jpa.hibernate.ddl-auto=update
 +adverseevent.jpa.hibernate.ddl-auto=${?DB_DDL_AUTO}
 +adverseevent.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
 +adverseevent.hibernate.show-sql=false
++
++##################################################################
++# API SETTINGS                                                  ##
++##################################################################
  
 -# !!!!! IMPORTANT, KEEP TO "none" for non-memory databases such as ORACLE, MYSQL, etc.
 -# Otherwise all the tables can be dropped or deleted
 -# Uncomment when NOT testing locally
 -# spring.jpa.hibernate.ddl-auto=none
 -# adverseevent.jpa.hibernate.ddl-auto=none
-+##################################################################
-+# API SETTINGS                                                  ##
-+##################################################################
-+
 +substanceAPI.BaseUrl="http://localhost:8080/"
 +substanceAPI.BaseUrl=${?API_URL}
  
@@ -131,12 +131,25 @@ index dd73fed..b28cb66 100644
      },
      {
          "entityClassName" = "gov.hhs.gsrs.adverseevents.adverseeventcvm.models.AdverseEventCvm",
-@@ -103,5 +132,8 @@ gsrs.indexers.list=[
+@@ -103,5 +132,21 @@ gsrs.indexers.list=[
      }
  ]
  
 -# Secure session off for dev, but if using HTTPS it's better to have it on
 -gsrs.sessions.sessionSecure=false
++##################################################################
++# LEGACY AUTHENTICATION                                         ##
++##################################################################
++
++ix.authentication.allownonauthenticated = ${?AUTH_ALLOW_NONAUTH}
++ix.authentication.autoregister = ${?AUTH_AUTOREGISTER}
++ix.authentication.autoregisteractive = ${?AUTH_AUTOREGISTERACTIVE}
++ix.authentication.sysadmin-email = ${?AUTH_SYSADMIN_EMAIL}
++ix.authentication.trustheader = ${?AUTH_TRUST_HEADER}
++ix.authentication.usernameheader = ${?AUTH_USERNAME_HEADER}
++ix.authentication.useremailheader = ${?AUTH_EMAIL_HEADER}
++ix.authentication.userrolesheader = ${?AUTH_ROLES_HEADER}
++
 +##################################################################
 +# CUSTOM CONFIGURATION                                          ##
 +##################################################################
@@ -152,7 +165,7 @@ index 0000000..4463387
 +    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-127\.\d+\.\d+\.\d+}"/>
 +</Context>
 diff --git a/applications/src/main/resources/application.conf b/applications/src/main/resources/application.conf
-index a7a5a6e..90c9530 100644
+index a7a5a6e..3505de5 100644
 --- a/applications/src/main/resources/application.conf
 +++ b/applications/src/main/resources/application.conf
 @@ -1,62 +1,86 @@
@@ -224,11 +237,11 @@ index a7a5a6e..90c9530 100644
 +##################################################################
 +
 +spring.datasource.url="jdbc:h2:file:substances.ix/h2/sprinxight;MODE=Oracle;AUTO_SERVER=TRUE"
-+spring.datasource.url="jdbc:"${?DB_HOST}"substances"
-+spring.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_SUBSTANCES}
 +spring.datasource.url=${?DB_URL_SUBSTANCES}
 +spring.datasource.username=${?DB_USERNAME}
 +spring.datasource.password=${?DB_PASSWORD}
++spring.datasource.connectionTimeout=${?DB_CONNECTION_TIMEOUT}
++spring.datasource.maximumPoolSize=${?DB_MAXIMUM_POOL_SIZE}
 +spring.jpa.database-platform=${?DB_DIALECT}
 +spring.jpa.hibernate.ddl-auto=none
 +spring.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
@@ -252,11 +265,11 @@ index a7a5a6e..90c9530 100644
 -application.datasource.driverClassName=org.h2.Driver
 -application.jpa.database-platform=org.hibernate.dialect.H2Dialect
 -# Should be "none" when not testing locally with H2
-+application.datasource.url="jdbc:"${?DB_HOST}${spring.application.name}
-+application.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_APPLICATIONS}
 +application.datasource.url=${?DB_URL_APPLICATIONS}
 +application.datasource.username=${?DB_USERNAME}
 +application.datasource.password=${?DB_PASSWORD}
++application.datasource.connectionTimeout=${?DB_CONNECTION_TIMEOUT}
++application.datasource.maximumPoolSize=${?DB_MAXIMUM_POOL_SIZE}
 +application.jpa.database-platform=${?DB_DIALECT}
  application.jpa.hibernate.ddl-auto=update
 +application.jpa.hibernate.ddl-auto=${?DB_DDL_AUTO}
@@ -305,7 +318,7 @@ index a7a5a6e..90c9530 100644
  ]
  
  gsrs.indexers.list=[
-@@ -99,16 +123,14 @@ gsrs.indexers.list=[
+@@ -99,16 +123,27 @@ gsrs.indexers.list=[
          "indexer" = "gov.hhs.gsrs.application.application.indexers.ApplicationIngredientIndexValueMaker",
          "class" = "gov.hhs.gsrs.application.application.models.Application"
      },
@@ -320,11 +333,24 @@ index a7a5a6e..90c9530 100644
  ]
  
 +##################################################################
-+# CUSTOM CONFIGURATION                                          ##
++# LEGACY AUTHENTICATION                                         ##
 +##################################################################
++
++ix.authentication.allownonauthenticated = ${?AUTH_ALLOW_NONAUTH}
++ix.authentication.autoregister = ${?AUTH_AUTOREGISTER}
++ix.authentication.autoregisteractive = ${?AUTH_AUTOREGISTERACTIVE}
++ix.authentication.sysadmin-email = ${?AUTH_SYSADMIN_EMAIL}
++ix.authentication.trustheader = ${?AUTH_TRUST_HEADER}
++ix.authentication.usernameheader = ${?AUTH_USERNAME_HEADER}
++ix.authentication.useremailheader = ${?AUTH_EMAIL_HEADER}
++ix.authentication.userrolesheader = ${?AUTH_ROLES_HEADER}
  
 -# Secure session off for dev, but if using HTTPS it's better to have it on
 -gsrs.sessions.sessionSecure=false
++##################################################################
++# CUSTOM CONFIGURATION                                          ##
++##################################################################
++
 +include file("conf/applications.conf")
 diff --git a/applications/src/main/webapp/META-INF/context.xml b/applications/src/main/webapp/META-INF/context.xml
 new file mode 100644
@@ -336,7 +362,7 @@ index 0000000..c9c02e8
 +    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-127\.\d+\.\d+\.\d+}"/>
 +</Context>
 diff --git a/clinical-trials/src/main/resources/application.conf b/clinical-trials/src/main/resources/application.conf
-index 89b120c..12107dd 100644
+index 89b120c..4935e4f 100644
 --- a/clinical-trials/src/main/resources/application.conf
 +++ b/clinical-trials/src/main/resources/application.conf
 @@ -1,176 +1,180 @@
@@ -411,11 +437,11 @@ index 89b120c..12107dd 100644
 -#debug=true
 -spring.main.allow-bean-definition-overriding=true
 +spring.datasource.url="jdbc:h2:file:substances.ix/h2/sprinxight;MODE=Oracle;AUTO_SERVER=TRUE"
-+spring.datasource.url="jdbc:"${?DB_HOST}"substances"
-+spring.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_SUBSTANCES}
 +spring.datasource.url=${?DB_URL_SUBSTANCES}
 +spring.datasource.username=${?DB_USERNAME}
 +spring.datasource.password=${?DB_PASSWORD}
++spring.datasource.connectionTimeout=${?DB_CONNECTION_TIMEOUT}
++spring.datasource.maximumPoolSize=${?DB_MAXIMUM_POOL_SIZE}
 +spring.jpa.database-platform=${?DB_DIALECT}
 +spring.jpa.hibernate.ddl-auto=none
 +spring.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
@@ -432,11 +458,11 @@ index 89b120c..12107dd 100644
        }
  
 +clinicaltrial.datasource.url="jdbc:h2:"${ix.h2.base}"/appinxight;MODE=Oracle;AUTO_SERVER=TRUE"
-+clinicaltrial.datasource.url="jdbc:"${?DB_HOST}"clinicaltrials"
-+clinicaltrial.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_CLINICAL_TRIALS}
 +clinicaltrial.datasource.url=${?DB_URL_CLINICAL_TRIALS}
 +clinicaltrial.datasource.username=${?DB_USERNAME}
 +clinicaltrial.datasource.password=${?DB_PASSWORD}
++clinicaltrial.datasource.connectionTimeout=${?DB_CONNECTION_TIMEOUT}
++clinicaltrial.datasource.maximumPoolSize=${?DB_MAXIMUM_POOL_SIZE}
 +clinicaltrial.jpa.database-platform=${?DB_DIALECT}
 +clinicaltrial.jpa.hibernate.ddl-auto=update
 +clinicaltrial.jpa.hibernate.ddl-auto=${?DB_DDL_AUTO}
@@ -454,12 +480,12 @@ index 89b120c..12107dd 100644
 +substanceAPI.BaseUrl=${?API_URL}
 +gsrs.microservice.substances.api.baseURL=${substanceAPI.BaseUrl}
 +gsrs.microservice.substances.api.baseURL=${?MS_API_URL}
-+
+ 
+-mygsrs.substanceAPI.baseUrl = "http://localhost:8080/"
 +##################################################################
 +# SPECIFIC CLINICAL TRIAL CONFIGS                               ##
 +##################################################################
- 
--mygsrs.substanceAPI.baseUrl = "http://localhost:8080/"
++
 +mygsrs.substanceAPI.baseUrl = ${substanceAPI.baseUrl}
  
  mygsrs.clinicaltrial.us.substance.linking.keyType.value = "UUID"
@@ -642,7 +668,7 @@ index 89b120c..12107dd 100644
  ]
  
  # General Indexers
-@@ -179,17 +183,22 @@ gsrs.indexers.list += {"indexer" = "gov.hhs.gsrs.clinicaltrial.europe.indexers.C
+@@ -179,17 +183,35 @@ gsrs.indexers.list += {"indexer" = "gov.hhs.gsrs.clinicaltrial.europe.indexers.C
  
  # For cross indexing substance-browse to clinical trials
  gsrs.indexers.list += {
@@ -664,6 +690,19 @@ index 89b120c..12107dd 100644
 +    "gov.hhs.gsrs.clinicaltrial.europe.exporters.ClinicalTrialEuropeExporterFactory"
  ]
  
++##################################################################
++# LEGACY AUTHENTICATION                                         ##
++##################################################################
++
++ix.authentication.allownonauthenticated = ${?AUTH_ALLOW_NONAUTH}
++ix.authentication.autoregister = ${?AUTH_AUTOREGISTER}
++ix.authentication.autoregisteractive = ${?AUTH_AUTOREGISTERACTIVE}
++ix.authentication.sysadmin-email = ${?AUTH_SYSADMIN_EMAIL}
++ix.authentication.trustheader = ${?AUTH_TRUST_HEADER}
++ix.authentication.usernameheader = ${?AUTH_USERNAME_HEADER}
++ix.authentication.useremailheader = ${?AUTH_EMAIL_HEADER}
++ix.authentication.userrolesheader = ${?AUTH_ROLES_HEADER}
++
 +##################################################################
 +# CUSTOM CONFIGURATION                                          ##
 +##################################################################
@@ -1183,7 +1222,7 @@ index cf3b71e..0000000
 -#Keeps + encoded characters encoded as +
 -zuul.forceOriginalQueryStringEncoding: true
 diff --git a/impurities/src/main/resources/application.conf b/impurities/src/main/resources/application.conf
-index 79fcbce..6e604d0 100644
+index 79fcbce..643a097 100644
 --- a/impurities/src/main/resources/application.conf
 +++ b/impurities/src/main/resources/application.conf
 @@ -1,65 +1,86 @@
@@ -1256,11 +1295,11 @@ index 79fcbce..6e604d0 100644
 +##################################################################
 +
 +spring.datasource.url="jdbc:h2:file:substances.ix/h2/sprinxight;MODE=Oracle;AUTO_SERVER=TRUE"
-+spring.datasource.url="jdbc:"${?DB_HOST}"substances"
-+spring.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_SUBSTANCES}
 +spring.datasource.url=${?DB_URL_SUBSTANCES}
 +spring.datasource.username=${?DB_USERNAME}
 +spring.datasource.password=${?DB_PASSWORD}
++spring.datasource.connectionTimeout=${?DB_CONNECTION_TIMEOUT}
++spring.datasource.maximumPoolSize=${?DB_MAXIMUM_POOL_SIZE}
 +spring.jpa.database-platform=${?DB_DIALECT}
 +spring.jpa.hibernate.ddl-auto=none
 +spring.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
@@ -1284,11 +1323,11 @@ index 79fcbce..6e604d0 100644
 -impurities.datasource.driverClassName=org.h2.Driver
 -impurities.jpa.database-platform=org.hibernate.dialect.H2Dialect
 -# Should be "none" when not testing locally with H2
-+impurities.datasource.url="jdbc:"${?DB_HOST}${spring.application.name}
-+impurities.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_IMPURITIES}
 +impurities.datasource.url=${?DB_URL_IMPURITIES}
 +impurities.datasource.username=${?DB_USERNAME}
 +impurities.datasource.password=${?DB_PASSWORD}
++impurities.datasource.connectionTimeout=${?DB_CONNECTION_TIMEOUT}
++impurities.datasource.maximumPoolSize=${?DB_MAXIMUM_POOL_SIZE}
 +impurities.jpa.database-platform=${?DB_DIALECT}
  impurities.jpa.hibernate.ddl-auto=update
 +impurities.jpa.hibernate.ddl-auto=${?DB_DDL_AUTO}
@@ -1318,19 +1357,31 @@ index 79fcbce..6e604d0 100644
      }
  ]
  
-@@ -85,9 +106,8 @@ ix.ginas.export.factories.impurities = [
+@@ -85,9 +106,21 @@ ix.ginas.export.factories.impurities = [
      "gov.hhs.gsrs.impurities.exporters.ImpuritiesExporterFactory"
  ]
  
 -# DISPLAY SQL in Console
 -# spring.jpa.show-sql = true
--
 +##################################################################
-+# CUSTOM CONFIGURATION                                          ##
++# LEGACY AUTHENTICATION                                         ##
 +##################################################################
+ 
++ix.authentication.allownonauthenticated = ${?AUTH_ALLOW_NONAUTH}
++ix.authentication.autoregister = ${?AUTH_AUTOREGISTER}
++ix.authentication.autoregisteractive = ${?AUTH_AUTOREGISTERACTIVE}
++ix.authentication.sysadmin-email = ${?AUTH_SYSADMIN_EMAIL}
++ix.authentication.trustheader = ${?AUTH_TRUST_HEADER}
++ix.authentication.usernameheader = ${?AUTH_USERNAME_HEADER}
++ix.authentication.useremailheader = ${?AUTH_EMAIL_HEADER}
++ix.authentication.userrolesheader = ${?AUTH_ROLES_HEADER}
  
 -# Secure session off for dev, but if using HTTPS it's better to have it on
 -gsrs.sessions.sessionSecure=false
++##################################################################
++# CUSTOM CONFIGURATION                                          ##
++##################################################################
++
 +include file("conf/impurities.conf")
 diff --git a/impurities/src/main/webapp/META-INF/context.xml b/impurities/src/main/webapp/META-INF/context.xml
 new file mode 100644
@@ -1342,7 +1393,7 @@ index 0000000..4b17cce
 +    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-127\.\d+\.\d+\.\d+}"/>
 +</Context>
 diff --git a/products/src/main/resources/application.conf b/products/src/main/resources/application.conf
-index 7cf6242..fa54e19 100644
+index 7cf6242..3cb22fa 100644
 --- a/products/src/main/resources/application.conf
 +++ b/products/src/main/resources/application.conf
 @@ -1,63 +1,86 @@
@@ -1415,11 +1466,11 @@ index 7cf6242..fa54e19 100644
 +##################################################################
 +
 +spring.datasource.url="jdbc:h2:file:substances.ix/h2/sprinxight;MODE=Oracle;AUTO_SERVER=TRUE"
-+spring.datasource.url="jdbc:"${?DB_HOST}"substances"
-+spring.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_SUBSTANCES}
 +spring.datasource.url=${?DB_URL_SUBSTANCES}
 +spring.datasource.username=${?DB_USERNAME}
 +spring.datasource.password=${?DB_PASSWORD}
++spring.datasource.connectionTimeout=${?DB_CONNECTION_TIMEOUT}
++spring.datasource.maximumPoolSize=${?DB_MAXIMUM_POOL_SIZE}
 +spring.jpa.database-platform=${?DB_DIALECT}
 +spring.jpa.hibernate.ddl-auto=none
 +spring.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
@@ -1443,26 +1494,26 @@ index 7cf6242..fa54e19 100644
 -product.datasource.driverClassName=org.h2.Driver
 -product.jpa.database-platform=org.hibernate.dialect.H2Dialect
 -# Should be "none" when not testing locally with H2
-+product.datasource.url="jdbc:"${?DB_HOST}${spring.application.name}
-+product.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_PRODUCTS}
 +product.datasource.url=${?DB_URL_PRODUCTS}
 +product.datasource.username=${?DB_USERNAME}
 +product.datasource.password=${?DB_PASSWORD}
++product.datasource.connectionTimeout=${?DB_CONNECTION_TIMEOUT}
++product.datasource.maximumPoolSize=${?DB_MAXIMUM_POOL_SIZE}
 +product.jpa.database-platform=${?DB_DIALECT}
  product.jpa.hibernate.ddl-auto=update
 +product.jpa.hibernate.ddl-auto=${?DB_DDL_AUTO}
 +product.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
 +product.hibernate.show-sql=false
-+
-+##################################################################
-+# API SETTINGS                                                  ##
-+##################################################################
  
 -# !!!!! IMPORTANT, KEEP TO "none" for non-memory databases such as ORACLE, MYSQL, etc.
 -# Otherwise all the tables can be dropped or deleted
 -# Uncomment when NOT testing locally
 -# spring.jpa.hibernate.ddl-auto=none
 -# product.jpa.hibernate.ddl-auto=none
++##################################################################
++# API SETTINGS                                                  ##
++##################################################################
++
 +substanceAPI.BaseUrl="http://localhost:8080/"
 +substanceAPI.BaseUrl=${?API_URL}
  
@@ -1482,17 +1533,29 @@ index 7cf6242..fa54e19 100644
      },
      {
          "class" = "gov.hhs.gsrs.products.productall.models.ProductMainAll",
-@@ -97,7 +120,8 @@ gsrs.indexers.list=[
+@@ -97,7 +120,21 @@ gsrs.indexers.list=[
      }
  ]
  
 +##################################################################
-+# CUSTOM CONFIGURATION                                          ##
++# LEGACY AUTHENTICATION                                         ##
 +##################################################################
  
--
++ix.authentication.allownonauthenticated = ${?AUTH_ALLOW_NONAUTH}
++ix.authentication.autoregister = ${?AUTH_AUTOREGISTER}
++ix.authentication.autoregisteractive = ${?AUTH_AUTOREGISTERACTIVE}
++ix.authentication.sysadmin-email = ${?AUTH_SYSADMIN_EMAIL}
++ix.authentication.trustheader = ${?AUTH_TRUST_HEADER}
++ix.authentication.usernameheader = ${?AUTH_USERNAME_HEADER}
++ix.authentication.useremailheader = ${?AUTH_EMAIL_HEADER}
++ix.authentication.userrolesheader = ${?AUTH_ROLES_HEADER}
+ 
 -# Secure session off for dev, but if using HTTPS it's better to have it on
 -gsrs.sessions.sessionSecure=false
++##################################################################
++# CUSTOM CONFIGURATION                                          ##
++##################################################################
++
 +include file("conf/products.conf")
 diff --git a/products/src/main/webapp/META-INF/context.xml b/products/src/main/webapp/META-INF/context.xml
 new file mode 100644
@@ -1504,7 +1567,7 @@ index 0000000..c43535e
 +    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-127\.\d+\.\d+\.\d+}"/>
 +</Context>
 diff --git a/substances/src/main/resources/application.conf b/substances/src/main/resources/application.conf
-index ced66f9..120038d 100644
+index ced66f9..7d3e255 100644
 --- a/substances/src/main/resources/application.conf
 +++ b/substances/src/main/resources/application.conf
 @@ -1,74 +1,107 @@
@@ -1574,11 +1637,11 @@ index ced66f9..120038d 100644
 -spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
 +
 +spring.datasource.url="jdbc:h2:"${ix.h2.base}"/appinxight;MODE=Oracle;AUTO_SERVER=TRUE"
-+spring.datasource.url="jdbc:"${?DB_HOST}"substances"
-+spring.datasource.url="jdbc:"${?DB_HOST}${?DB_NAME_SUBSTANCES}
 +spring.datasource.url=${?DB_URL_SUBSTANCES}
 +spring.datasource.username=${?DB_USERNAME}
 +spring.datasource.password=${?DB_PASSWORD}
++spring.datasource.connectionTimeout=${?DB_CONNECTION_TIMEOUT}
++spring.datasource.maximumPoolSize=${?DB_MAXIMUM_POOL_SIZE}
 +spring.jpa.database-platform=${?DB_DIALECT}
  spring.jpa.hibernate.ddl-auto=update
 +spring.jpa.hibernate.ddl-auto=${?DB_DDL_AUTO}

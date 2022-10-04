@@ -78,14 +78,10 @@ The custom configuration file for the "gateway" module: /home/conf/gateway.conf
 - DB_DDL_AUTO (none)
 - DB_DIALECT
 - DB_HOST
-- DB_NAME_ADVERSE_EVENTS (adverseevents)
-- DB_NAME_APPLICATIONS (applications)
-- DB_NAME_CLINICAL_TRIALS (clinicaltrials)
-- DB_NAME_IMPURITIES (impurities)
-- DB_NAME_PRODUCTS (products)
-- DB_NAME_SUBSTANCES (substances)
 - DB_PASSWORD
 - DB_USERNAME
+- DB_CONNECTION_TIMEOUT (30000)
+- DB_MAXIMUM_POOL_SIZE (10)
 - DB_URL_ADVERSE_EVENTS (jdbc:h2:"${ix.h2.base}"/appinxight;MODE=Oracle;AUTO_SERVER=TRUE)
 - DB_URL_APPLICATIONS (jdbc:h2:"${ix.h2.base}"/appinxight;MODE=Oracle;AUTO_SERVER=TRUE)
 - DB_URL_CLINICAL_TRIALS (jdbc:h2:"${ix.h2.base}"/appinxight;MODE=Oracle;AUTO_SERVER=TRUE)
