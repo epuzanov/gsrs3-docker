@@ -16,6 +16,7 @@ FROM maven:3-jdk-11 as build
     RUN git clone https://github.com/ncats/gsrs-spring-module-substances.git && \
         cd gsrs-spring-module-substances && \
         ./installExtraJars.sh && \
+        sed -i "s/Hoxton.SR1/2020.0.2/g" pom.xml && \
         ./mvnw clean -U install -DskipTests && \
         cd ..
     RUN git clone https://github.com/ncats/gsrs-spring-module-adverse-events.git && \
