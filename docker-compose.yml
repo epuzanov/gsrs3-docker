@@ -1,0 +1,86 @@
+version: '3'
+services:
+  db:
+    image: postgres:12
+    restart: always
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run
+    volumes:
+      - db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: substances
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ChangeThisPasswordN0w!
+  substances:
+    image: gsrs3:latest
+    restart: always
+    read_only: true
+    tmpfs:
+      - /tmp:exec,mode=1777
+      - /usr/local/tomcat/work/Catalina/localhost:exec,mode=1777
+    volumes:
+      - conf:/home/conf:ro
+      - export:/home/export
+      - substances_ix:/home/substances.ix
+      - logs:/home/logs
+    environment:
+      CATALINA_OPTS:
+        -Xms8g
+        -Xmx8g
+        -Dgateway.allow.pattern="172\.\d+\.\d+\.\d+"
+        -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|frontend|impurities|products|ROOT)"
+      API_URL: http://localhost:8080/
+      APPLICATION_HOST: http://localhost
+      DB_URL_SUBSTANCES: jdbc:postgresql://db:5432/substances
+      DB_USERNAME: postgres
+      DB_PASSWORD: ChangeThisPasswordN0w!
+      DB_DDL_AUTO: update
+      DB_DIALECT: gsrs.repository.sql.dialect.GSRSPostgreSQLDialectCustom
+    depends_on:
+      - db
+  frontend:
+    image: gsrs3:latest
+    restart: always
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /usr/local/tomcat/work/Catalina/localhost:exec,mode=1777
+    volumes:
+      - conf:/home/conf:ro
+    environment:
+      JAVA_OPTS:
+        -Xms512m
+        -Xmx512m
+        -Dgateway.allow.pattern="172\.\d+\.\d+\.\d+"
+        -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|impurities|products|substances|ROOT)"
+      APPLICATION_HOST: http://localhost
+      FRONTEND_CONFIG_DIR: /home/conf
+  gateway:
+    image: gsrs3:latest
+    restart: always
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /usr/local/tomcat/work/Catalina/localhost:exec,mode=1777
+    volumes:
+      - conf:/home/conf:ro
+    environment:
+      JAVA_OPTS:
+        -Xms512m
+        -Xmx512m
+        -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|frontend|impurities|products|substances)"
+      API_URL: http://substances:8080/
+      API_BASE_PATH: /ginas/app
+      APPLICATION_HOST: http://localhost
+      MS_URL_FRONTEND: http://frontend:8080/frontend
+      MS_URL_SUBSTANCES: http://substances:8080/substances
+    ports:
+      - 80:8080
+volumes:
+  conf:
+  db:
+  export:
+  substances_ix:
+  logs:
