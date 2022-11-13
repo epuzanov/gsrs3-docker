@@ -41,17 +41,17 @@ docker run -ti --rm -v /var/lib/gsrs:/home -e DB_HOST='postgresql://db.server.or
 
 ### Running the docker image
 ```
-docker run -d -p 8080:8080 -v /var/lib/gsrs:/home -e JAVA_OPTS='-Xms12g -Xmx12g -XX:ReservedCodeCacheSize=512m' -e DB_HOST='postgresql://db.server.org:5432/' -e DB_USERNAME='postgres' -e DB_PASSWORD='SecurePassword' gsrs3:latest
+docker run -d -p 8080:8080 -v /var/lib/gsrs:/home -e CATALINA_OPTS='-Xms12g -Xmx12g -XX:ReservedCodeCacheSize=512m' -e DB_HOST='postgresql://db.server.org:5432/' -e DB_USERNAME='postgres' -e DB_PASSWORD='SecurePassword' gsrs3:latest
 ```
 
 ### Running frontend and gateway only
 ```
-docker run -d -p 8080:8080 -v /var/logs/gsrs:/home -e MS_URL_SUBSTANCES="http://gsrs3-substances.api.server.org:8080/substances" -e JAVA_OPTS='-Xms2g -Xmx2g -XX:ReservedCodeCacheSize=512m -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|impurities|products|substances)' --name gsrs3-frontend gsrs3:latest
+docker run -d -p 8080:8080 -v /var/logs/gsrs:/home -e MS_URL_SUBSTANCES="http://gsrs3-substances.api.server.org:8080/substances" -e CATALINA_OPTS='-Xms2g -Xmx2g -XX:ReservedCodeCacheSize=512m -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|impurities|products|substances)' --name gsrs3-frontend gsrs3:latest
 ```
 
 ### Running substances only
 ```
-docker run -d -p 8080:8080 -v /var/lib/gsrs:/home -e JAVA_OPTS='-Xms12g -Xmx12g -XX:ReservedCodeCacheSize=512m -Dgateway.allow.pattern="\d+\.\d+\.\d+\.\d+" -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|frontend|ROOT|impurities|products)' -e DB_HOST='postgresql://db.server.org:5432/' -e DB_USERNAME='postgres' -e DB_PASSWORD='SecurePassword' --name gsrs3-substances gsrs3:latest
+docker run -d -p 8080:8080 -v /var/lib/gsrs:/home -e CATALINA_OPTS='-Xms12g -Xmx12g -XX:ReservedCodeCacheSize=512m -Dgateway.allow.pattern="\d+\.\d+\.\d+\.\d+" -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|frontend|ROOT|impurities|products)' -e DB_HOST='postgresql://db.server.org:5432/' -e DB_USERNAME='postgres' -e DB_PASSWORD='SecurePassword' --name gsrs3-substances gsrs3:latest
 ```
 
 ### Custom configuration files (optional)
@@ -63,6 +63,7 @@ The custom configuration file for the "gateway" module: /home/conf/gateway.conf
 
 ### Environment Varables
 - API_URL (http://localhost:8080/)
+- API_BASE_PATH
 - APPLICATION_HOST (http://localhost:8080)
 - APPROVALID_GENERATOR (ix.ginas.utils.UNIIGenerator)
 - APPROVALID_NAME
@@ -77,7 +78,6 @@ The custom configuration file for the "gateway" module: /home/conf/gateway.conf
 - AUTH_USERNAME_HEADER (OAM_REMOTE_USER)
 - DB_DDL_AUTO (none)
 - DB_DIALECT
-- DB_HOST
 - DB_PASSWORD
 - DB_USERNAME
 - DB_CONNECTION_TIMEOUT (30000)

@@ -6,8 +6,6 @@ FROM maven:3-jdk-11 as build
     #ARG MODULE_IGNORE="adverse-events applications clinical-trials products"
     ARG MODULE_IGNORE=
 
-    COPY patches /patches
-    RUN apt-get update && apt-get install -y --no-install-recommends patch
     RUN git clone https://github.com/ncats/gsrs-spring-starter.git && \
         cd gsrs-spring-starter && \
         ./installExtraJars.sh && \
@@ -51,7 +49,6 @@ FROM maven:3-jdk-11 as build
         cd ..
     RUN git clone --recursive --depth=1 --branch STAGE https://github.com/ncats/gsrs3-main-deployment.git && \
         cd gsrs3-main-deployment && \
-        find /patches -type f -name '*.patch' -print0 -exec patch -p1 -i {} \; && \
         mkdir -p ${CATALINA_HOME}/conf/Catalina/localhost ${CATALINA_HOME}/webapps && \
         rm -rf ${MODULE_IGNORE} && \
         for module in `ls -1` ; do \
