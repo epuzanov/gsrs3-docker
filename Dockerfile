@@ -87,6 +87,7 @@ FROM tomcat:9-jre11
         sed -i "s/connectionTimeout/maxPostSize=\"536870912\" connectionTimeout/g" ${CATALINA_HOME}/conf/server.xml && \
         sed -i "s/unpackWARs=\"true\" autoDeploy=\"true\"/unpackWARs=\"false\" autoDeploy=\"false\" deployIgnore=\"\$\{deploy.ignore.pattern:-(adverse-events|applications|clinical-trials|impurities|products)\}\"/g" ${CATALINA_HOME}/conf/server.xml && \
         sed -i "s/\$.catalina.base././g" ${CATALINA_HOME}/conf/logging.properties && \
+        sed -i "s/common.loader=/common.loader=\"\/home\/conf\",/g" ${CATALINA_HOME}/conf/catalina.properties && \
         mkdir -p /root/.cache/JNA /root/.java/fonts && \
         ln -s /tmp /root/.cache/JNA/temp && \
         ln -s /tmp /root/.java/fonts && \
