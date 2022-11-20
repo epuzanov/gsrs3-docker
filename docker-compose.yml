@@ -31,7 +31,6 @@ services:
         -Xmx8g
         -Dgateway.allow.pattern="172\.\d+\.\d+\.\d+"
         -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|frontend|impurities|products|ROOT)"
-      API_URL: http://localhost:8080/
       APPLICATION_HOST: http://localhost
       DB_URL_SUBSTANCES: jdbc:postgresql://db:5432/substances
       DB_USERNAME: postgres
@@ -56,7 +55,7 @@ services:
         -Dgateway.allow.pattern="172\.\d+\.\d+\.\d+"
         -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|impurities|products|substances|ROOT)"
       APPLICATION_HOST: http://localhost
-      FRONTEND_CONFIG_DIR: /home/conf
+      FRONTEND_CONFIG_DIR: /home/conf/static
   gateway:
     image: gsrs3:latest
     restart: always
@@ -71,8 +70,7 @@ services:
         -Xms512m
         -Xmx512m
         -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|frontend|impurities|products|substances)"
-      API_URL: http://substances:8080/
-      API_BASE_PATH: /ginas/app
+      #API_BASE_PATH: /ginas/app
       APPLICATION_HOST: http://localhost
       MS_URL_FRONTEND: http://frontend:8080/frontend
       MS_URL_SUBSTANCES: http://substances:8080/substances
