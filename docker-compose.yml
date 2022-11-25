@@ -27,8 +27,8 @@ services:
       - logs:/home/logs
     environment:
       CATALINA_OPTS:
-        -Xms8g
-        -Xmx8g
+        -Xms4g
+        -Xmx4g
         -Dgateway.allow.pattern="\d+\.\d+\.\d+\.\d+"
         -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|frontend|impurities|products|ROOT)"
       APPLICATION_HOST: http://localhost
