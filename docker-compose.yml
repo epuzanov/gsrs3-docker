@@ -22,7 +22,7 @@ services:
       - /usr/local/tomcat/work/Catalina/localhost:exec,mode=1777
     volumes:
       - conf:/home/conf:ro
-      - export:/home/export
+      - exports:/home/exports
       - substances_ix:/home/substances.ix
       - logs:/home/logs
     environment:
@@ -79,6 +79,6 @@ services:
 volumes:
   conf:
   db:
-  export:
+  exports:
   substances_ix:
   logs:
