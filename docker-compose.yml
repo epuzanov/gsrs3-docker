@@ -52,7 +52,7 @@ services:
       JAVA_OPTS:
         -Xms512m
         -Xmx512m
-        -Dgateway.allow.pattern="172\.\d+\.\d+\.\d+"
+        -Dgateway.allow.pattern="\d+\.\d+\.\d+\.\d+"
         -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|impurities|products|substances|ROOT)"
       APPLICATION_HOST: http://localhost
       FRONTEND_CONFIG_DIR: /home/conf/static

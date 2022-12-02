@@ -2,11 +2,52 @@ FROM maven:3-jdk-11 as build
     ENV MAVEN_CONFIG=
     ENV CATALINA_HOME=/usr/local/tomcat
     ARG GSRS_VER=3.0.3-SNAPSHOT
-    ARG GSRS_TAG=GSRSv3.0.3PUB
+    ARG GSRS_TAG=main
     #ARG MODULE_IGNORE="adverse-events applications clinical-trials products"
     ARG MODULE_IGNORE=
 
-    RUN git clone --recursive --depth=1 --branch ${GSRS_TAG} https://github.com/ncats/gsrs3-main-deployment.git && \
+    RUN git clone https://github.com/ncats/gsrs-spring-starter.git && \
+        cd gsrs-spring-starter && \
+        ./installExtraJars.sh && \
+        ./mvnw clean -U install -DskipTests && \
+        cd ..
+    RUN git clone https://github.com/ncats/gsrs-spring-module-substances.git && \
+        cd gsrs-spring-module-substances && \
+        ./installExtraJars.sh && \
+        sed -i "s/Hoxton.SR1/2020.0.2/g" pom.xml && \
+        ./mvnw clean -U install -DskipTests && \
+        cd ..
+    RUN git clone https://github.com/ncats/gsrs-spring-module-adverse-events.git && \
+        cd gsrs-spring-module-adverse-events && \
+        sed -i "s/Hoxton.SR1/2020.0.2/g" pom.xml && \
+        sed -i "s/2.17.1/2.17.2/g" pom.xml && \
+        sh ./mvnw clean -U install -DskipTests && \
+        cd ..
+    RUN git clone https://github.com/ncats/gsrs-spring-module-drug-applications.git && \
+        cd gsrs-spring-module-drug-applications && \
+        sed -i "s/Hoxton.SR1/2020.0.2/g" pom.xml && \
+        sed -i "s/2.17.1/2.17.2/g" pom.xml && \
+        sh ./mvnw clean -U install -DskipTests && \
+        cd ..
+    RUN git clone https://github.com/ncats/gsrs-spring-module-clinical-trials.git && \
+        cd gsrs-spring-module-clinical-trials && \
+        sed -i "s/Hoxton.SR1/2020.0.2/g" pom.xml && \
+        sed -i "s/2.17.1/2.17.2/g" pom.xml && \
+        sh ./mvnw clean -U install -DskipTests && \
+        cd ..
+    RUN git clone https://github.com/ncats/gsrs-spring-module-impurities.git && \
+        cd gsrs-spring-module-impurities && \
+        sed -i "s/Hoxton.SR1/2020.0.2/g" pom.xml && \
+        sed -i "s/2.17.1/2.17.2/g" pom.xml && \
+        sh ./mvnw clean -U install -DskipTests && \
+        cd ..
+    RUN git clone https://github.com/ncats/gsrs-spring-module-drug-products.git && \
+        cd gsrs-spring-module-drug-products && \
+        sed -i "s/Hoxton.SR1/2020.0.2/g" pom.xml && \
+        sed -i "s/2.17.1/2.17.2/g" pom.xml && \
+        sh ./mvnw clean -U install -DskipTests && \
+        cd ..
+    RUN git clone --recursive --depth=1 --branch STAGE https://github.com/ncats/gsrs3-main-deployment.git && \
         cd gsrs3-main-deployment && \
         mkdir -p ${CATALINA_HOME}/conf/Catalina/localhost ${CATALINA_HOME}/webapps && \
         rm -rf ${MODULE_IGNORE} && \
