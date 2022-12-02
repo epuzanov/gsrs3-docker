@@ -52,5 +52,4 @@ FROM tomcat:9-jre11
         ln -s /tmp /root/.java/fonts && \
         ln -s /tmp ${CATALINA_HOME}/temp
     COPY --from=build --chown=root ${CATALINA_HOME} ${CATALINA_HOME}
-    VOLUME ["/home"]
     WORKDIR /home
