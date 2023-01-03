@@ -44,6 +44,7 @@ services:
     restart: always
     read_only: true
     tmpfs:
+      - /home/logs
       - /tmp
       - /usr/local/tomcat/work/Catalina/localhost:exec,mode=1777
     volumes:
@@ -61,6 +62,7 @@ services:
     restart: always
     read_only: true
     tmpfs:
+      - /home/logs
       - /tmp
       - /usr/local/tomcat/work/Catalina/localhost:exec,mode=1777
     volumes:
@@ -70,10 +72,9 @@ services:
         -Xms512m
         -Xmx512m
         -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|frontend|impurities|products|substances)"
-      #API_BASE_PATH: /ginas/app
       APPLICATION_HOST: http://localhost
       MS_URL_FRONTEND: http://frontend:8080/frontend
-      MS_URL_SUBSTANCES: http://substances:8080/substances
+      API_URL: http://substances:8080/
     ports:
       - 80:8080
 volumes:
