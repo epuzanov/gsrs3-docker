@@ -8,16 +8,23 @@ FROM maven:3-jdk-11 as build
     ARG MODULE_IGNORE=
 
     COPY . /src
+    # Install EP Extensions
+    RUN [ -z "EP_EXT_TAG" ] && exit 0 ; \
+        git clone --recursive --depth=1 --branch ${EP_EXT_TAG} https://github.com/epuzanov/gsrs-ep-substance-extension.git && \
+        cd gsrs-ep-substance-extension && \
+        sh ./mvnw clean -U install -DskipTests && \
+        cd ..
+
     RUN git clone --recursive --depth=1 --branch ${GSRS_TAG} https://github.com/ncats/gsrs3-main-deployment.git && \
         cd gsrs3-main-deployment && \
+        [ -z "EP_EXT_TAG" ] && rm -rf /src/patches/30-gsrsEpExtension.patch ; \
         apt-get update && apt-get install -y --no-install-recommends patch && [ -d /src/patches ] && find /src/patches -type f -name '*.patch' -print0 -exec patch -p1 -i {} \; ; \
         mkdir -p ${CATALINA_HOME}/conf/Catalina/localhost ${CATALINA_HOME}/webapps && \
         rm -rf ${MODULE_IGNORE} && \
         for module in `ls -1` ; do \
             [ ! -f ${module}/mvnw ] && continue ; \
             cd ${module} && \
-            chmod 755 mvnw && \
-            ./mvnw clean -U package -DskipTests && \
+            sh ./mvnw clean -U package -DskipTests && \
             unzip ./target/${module}.war.original -d ${CATALINA_HOME}/webapps/${module} && \
             mkdir -p ${CATALINA_HOME}/work/Catalina/localhost/${module} && \
             cd .. && \
@@ -29,20 +36,6 @@ FROM maven:3-jdk-11 as build
         [ -f logback-spring.xml.backup ] && mv logback-spring.xml.backup ${CATALINA_HOME}/webapps/substances/WEB-INF/classes/logback-spring.xml ; \
         [ -d ${CATALINA_HOME}/webapps/gateway ] && mv ${CATALINA_HOME}/webapps/gateway ${CATALINA_HOME}/webapps/ROOT ; \
         [ -d ${CATALINA_HOME}/work/Catalina/localhost/gateway ] && mv ${CATALINA_HOME}/work/Catalina/localhost/gateway ${CATALINA_HOME}/work/Catalina/localhost/ROOT ; \
-        cd ..
-
-    # Install EP Extensions
-    RUN [ -z "EP_EXT_TAG" ] && exit 0 ; \
-        git clone --recursive --depth=1 --branch ${EP_EXT_TAG} https://github.com/epuzanov/gsrs-ep-substance-extension.git && \
-        cd gsrs-ep-substance-extension && \
-        [ -d ${CATALINA_HOME}/webapps/substances ] && ./mvnw clean -U package -DskipTests ; \
-        [ -f "./target/gsrs-ep-substance-extension-${GSRS_VER}.jar" ] && cp ./target/gsrs-ep-substance-extension-${GSRS_VER}.jar ${CATALINA_HOME}/webapps/substances/WEB-INF/lib/ ; \
-        [ -f /root/.m2/repository/io/burt/jmespath-core/0.5.1/jmespath-core-0.5.1.jar ] && cp /root/.m2/repository/io/burt/jmespath-core/0.5.1/jmespath-core-0.5.1.jar ${CATALINA_HOME}/webapps/substances/WEB-INF/lib/ ; \
-        [ -f /root/.m2/repository/io/burt/jmespath-jackson/0.5.1/jmespath-jackson-0.5.1.jar ] && cp /root/.m2/repository/io/burt/jmespath-jackson/0.5.1/jmespath-jackson-0.5.1.jar ${CATALINA_HOME}/webapps/substances/WEB-INF/lib/ ; \
-        [ -f /root/.m2/repository/org/apache/cxf/cxf-core/4.0.0/cxf-core-4.0.0.jar ] && cp /root/.m2/repository/org/apache/cxf/cxf-core/4.0.0/cxf-core-4.0.0.jar ${CATALINA_HOME}/webapps/substances/WEB-INF/lib/ ; \
-        [ -f /root/.m2/repository/org/apache/cxf/cxf-rt-rs-json-basic/4.0.0/cxf-rt-rs-json-basic-4.0.0.jar ] && cp /root/.m2/repository/org/apache/cxf/cxf-rt-rs-json-basic/4.0.0/cxf-rt-rs-json-basic-4.0.0.jar ${CATALINA_HOME}/webapps/substances/WEB-INF/lib/ ; \
-        [ -f /root/.m2/repository/org/apache/cxf/cxf-rt-rs-security-jose/4.0.0/cxf-rt-rs-security-jose-4.0.0.jar ] && cp /root/.m2/repository/org/apache/cxf/cxf-rt-rs-security-jose/4.0.0/cxf-rt-rs-security-jose-4.0.0.jar ${CATALINA_HOME}/webapps/substances/WEB-INF/lib/ ; \
-        [ -f /root/.m2/repository/org/apache/cxf/cxf-rt-security/4.0.0/cxf-rt-security-4.0.0.jar ] && cp /root/.m2/repository/org/apache/cxf/cxf-rt-security/4.0.0/cxf-rt-security-4.0.0.jar ${CATALINA_HOME}/webapps/substances/WEB-INF/lib/ ; \
         cd ..
 
     # Remove duplicated JAR files

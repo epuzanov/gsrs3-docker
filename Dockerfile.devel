@@ -18,24 +18,29 @@ FROM maven:3-jdk-11 as build
 
     RUN git clone --recursive --depth=1 --branch joseCrypto https://github.com/ncats/gsrs-spring-module-substances.git && \
         cd gsrs-spring-module-substances && \
-        [ ! -z "EP_EXT_TAG" ] && git clone --recursive --depth=1 --branch ${EP_EXT_TAG} https://github.com/epuzanov/gsrs-ep-substance-extension.git ; \
-        [ -d gsrs-ep-substance-extension ] && sed -i "s/extension<\/module>/extension<\/module>\n        <module>gsrs-ep-substance-extension<\/module>/g" pom.xml ; \
-        rm -rf gsrs-ep-substance-extension/src/main/java/gsrs/module/substance/services gsrs-ep-substance-extension/src/main/java/gsrs/module/substance/exporters/JsonPortable*.java && \
         [ -f installExtraJars.sh ] && sh ./installExtraJars.sh ; \
         sh ./mvnw clean -U install -DskipTests && \
         cd ..
 
     COPY . /src
+    # Install EP Extensions
+    RUN [ -z "EP_EXT_TAG" ] && exit 0 ; \
+        git clone --recursive --depth=1 --branch ${EP_EXT_TAG} https://github.com/epuzanov/gsrs-ep-substance-extension.git && \
+        cd gsrs-ep-substance-extension && \
+        rm -rf src/main/java/gsrs/module/substance/services src/main/java/gsrs/module/substance/exporters/JsonPortable*.java src/main/java/gsrs/EnableGsrsJoseCryptoService.java /src/patches/40-joseCryptoService.patch && \
+        sh ./mvnw clean -U install -DskipTests && \
+        cd ..
+
     RUN git clone --recursive --depth=1 --branch ${GSRS_TAG} https://github.com/ncats/gsrs3-main-deployment.git && \
         cd gsrs3-main-deployment && \
+        [ -z "EP_EXT_TAG" ] && rm -rf /src/patches/30-gsrsEpExtension.patch ; \
         apt-get update && apt-get install -y --no-install-recommends patch && [ -d /src/patches ] && find /src/patches -type f -name '*.patch' -print0 -exec patch -p1 -i {} \; ; \
         mkdir -p ${CATALINA_HOME}/conf/Catalina/localhost ${CATALINA_HOME}/webapps && \
         rm -rf ${MODULE_IGNORE} && \
         for module in `ls -1` ; do \
             [ ! -f ${module}/mvnw ] && continue ; \
             cd ${module} && \
-            chmod 755 mvnw && \
-            ./mvnw clean -U package -DskipTests && \
+            sh ./mvnw clean -U package -DskipTests && \
             unzip ./target/${module}.war.original -d ${CATALINA_HOME}/webapps/${module} && \
             mkdir -p ${CATALINA_HOME}/work/Catalina/localhost/${module} && \
             cd .. && \
