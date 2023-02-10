@@ -21,10 +21,10 @@ services:
       - /tmp:exec,mode=1777
       - /usr/local/tomcat/work/Catalina/localhost:exec,mode=1777
     volumes:
-      - conf:/home/conf:ro
-      - exports:/home/exports
-      - substances_ix:/home/substances.ix
-      - logs:/home/logs
+      - conf:/home/srs/conf:ro
+      - exports:/home/srs/exports
+      - substances_ix:/home/srs/substances.ix
+      - logs:/home/srs/logs
     environment:
       CATALINA_OPTS:
         -Xms4g
@@ -44,11 +44,11 @@ services:
     restart: always
     read_only: true
     tmpfs:
-      - /home/logs
+      - /home/srs/logs
       - /tmp
       - /usr/local/tomcat/work/Catalina/localhost:exec,mode=1777
     volumes:
-      - conf:/home/conf:ro
+      - conf:/home/srs/conf:ro
     environment:
       JAVA_OPTS:
         -Xms512m
@@ -56,17 +56,16 @@ services:
         -Dgateway.allow.pattern="\d+\.\d+\.\d+\.\d+"
         -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|impurities|products|substances|ROOT)"
       APPLICATION_HOST: http://localhost
-      FRONTEND_CONFIG_DIR: /home/conf/static
   gateway:
     image: gsrs3:latest
     restart: always
     read_only: true
     tmpfs:
-      - /home/logs
+      - /home/srs/logs
       - /tmp
       - /usr/local/tomcat/work/Catalina/localhost:exec,mode=1777
     volumes:
-      - conf:/home/conf:ro
+      - conf:/home/srs/conf:ro
     environment:
       JAVA_OPTS:
         -Xms512m

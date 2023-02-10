@@ -17,12 +17,12 @@ investigation, consistent with the **ISO 11238** standard.
 ### Build a docker image
 Build All-in-One GSRS3 image:
 ```
-docker build --ulimit nofile=65535:65535 -t gsrs3:latest
+docker build --ulimit nofile=65535:65535 -t gsrs3:latest .
 ```
 
 Build GSRS3 Image without "adverse-events", "applications", "clinical-trials" und "products" modules
 ```
-docker build --ulimit nofile=65535:65535 --build-arg MODULE_IGNORE="adverse-events applications clinical-trials products" -t gsrs3:latest
+docker build --ulimit nofile=65535:65535 --build-arg MODULE_IGNORE="adverse-events applications clinical-trials products" -t gsrs3:latest .
 ```
 
 ### Database Initialization
@@ -30,36 +30,36 @@ docker build --ulimit nofile=65535:65535 --build-arg MODULE_IGNORE="adverse-even
 #### H2
 ```
 mkdir -p /var/lib/gsrs
-docker run -ti --rm -v /var/lib/gsrs:/home -e DB_DDL_AUTO='create' gsrs3:latest
+docker run -ti --rm -v /var/lib/gsrs:/home/srs -e DB_DDL_AUTO='create' gsrs3:latest
 ```
 
 #### PostgreSQL
 ```
 mkdir -p /var/lib/gsrs
-docker run -ti --rm -v /var/lib/gsrs:/home -e DB_HOST='postgresql://db.server.org:5432/' -e DB_USERNAME='postgres' -e DB_PASSWORD='SecurePassword' -e DB_DDL_AUTO='create' gsrs3:latest
+docker run -ti --rm -v /var/lib/gsrs:/home/srs -e DB_HOST='postgresql://db.server.org:5432/' -e DB_USERNAME='postgres' -e DB_PASSWORD='SecurePassword' -e DB_DDL_AUTO='create' gsrs3:latest
 ```
 
 ### Running the docker image
 ```
-docker run -d -p 8080:8080 -v /var/lib/gsrs:/home -e CATALINA_OPTS='-Xms12g -Xmx12g -XX:ReservedCodeCacheSize=512m' -e DB_HOST='postgresql://db.server.org:5432/' -e DB_USERNAME='postgres' -e DB_PASSWORD='SecurePassword' gsrs3:latest
+docker run -d -p 8080:8080 -v /var/lib/gsrs:/home/srs -e CATALINA_OPTS='-Xms12g -Xmx12g -XX:ReservedCodeCacheSize=512m' -e DB_HOST='postgresql://db.server.org:5432/' -e DB_USERNAME='postgres' -e DB_PASSWORD='SecurePassword' gsrs3:latest
 ```
 
 ### Running frontend and gateway only
 ```
-docker run -d -p 8080:8080 -v /var/logs/gsrs:/home -e MS_URL_SUBSTANCES="http://gsrs3-substances.api.server.org:8080/substances" -e CATALINA_OPTS='-Xms2g -Xmx2g -XX:ReservedCodeCacheSize=512m -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|impurities|products|substances)' --name gsrs3-frontend gsrs3:latest
+docker run -d -p 8080:8080 -v /var/logs/gsrs:/home/srs -e MS_URL_SUBSTANCES="http://gsrs3-substances.api.server.org:8080/substances" -e CATALINA_OPTS='-Xms2g -Xmx2g -XX:ReservedCodeCacheSize=512m -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|impurities|products|substances)' --name gsrs3-frontend gsrs3:latest
 ```
 
 ### Running substances only
 ```
-docker run -d -p 8080:8080 -v /var/lib/gsrs:/home -e CATALINA_OPTS='-Xms12g -Xmx12g -XX:ReservedCodeCacheSize=512m -Dgateway.allow.pattern="\d+\.\d+\.\d+\.\d+" -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|frontend|ROOT|impurities|products)' -e DB_HOST='postgresql://db.server.org:5432/' -e DB_USERNAME='postgres' -e DB_PASSWORD='SecurePassword' --name gsrs3-substances gsrs3:latest
+docker run -d -p 8080:8080 -v /var/lib/gsrs:/home/srs -e CATALINA_OPTS='-Xms12g -Xmx12g -XX:ReservedCodeCacheSize=512m -Dgateway.allow.pattern="\d+\.\d+\.\d+\.\d+" -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|frontend|ROOT|impurities|products)' -e DB_HOST='postgresql://db.server.org:5432/' -e DB_USERNAME='postgres' -e DB_PASSWORD='SecurePassword' --name gsrs3-substances gsrs3:latest
 ```
 
 ### Custom configuration files (optional)
 The custom configuration files can be plased in the "conf" subdirectory in the working directory.
 
-The custom configuration file for the "substances" module: /home/conf/substances.conf
+The custom configuration file for the "substances" module: /home/srs/conf/substances.conf
 
-The custom configuration file for the "gateway" module: /home/conf/gateway.conf
+The custom configuration file for the "gateway" module: /home/srs/conf/gateway.conf
 
 ### Environment Varables
 - API_URL (http://localhost:8080/)
@@ -92,7 +92,6 @@ The custom configuration file for the "gateway" module: /home/conf/gateway.conf
 - EUREKA_CLIENT_ENABLED (false)
 - EUREKA_SERVICE_URL (http://localhost:8761/eureka)
 - FRONTEND_ROUTE_PREFIX (ginas/app/beta)
-- FRONTEND_CONFIG_DIR (classpath:/static/assets/data)
 - MS_URL_ADVERSE_EVENTS (http://localhost:8080/adverse-events)
 - MS_URL_APPLICATIONS (http://localhost:8080/applications)
 - MS_URL_CLINICAL_TRIALS (http://localhost:8080/clinical-trials)
