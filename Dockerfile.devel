@@ -83,6 +83,8 @@ FROM maven:3-jdk-11 as build
 FROM tomcat:9-jre11
     ENV CATALINA_HOME=/usr/local/tomcat
     RUN rm -rf ${CATALINA_HOME}/temp && \
+        /bin/echo -e "#!/bin/sh\nmkdir -p /home/srs/conf /home/srs/logs /home/srs/exports\ncd /home/srs\nexec \"\$@\"\n" > /entrypoint.sh && \
+        chmod 755 /entrypoint.sh && \
         sed -i "s/logs/\/home\/srs\/logs/g" ${CATALINA_HOME}/conf/server.xml && \
         sed -i "s/connectionTimeout/maxPostSize=\"536870912\" relaxedQueryChars=\"[]|{}\" connectionTimeout/g" ${CATALINA_HOME}/conf/server.xml && \
         sed -i "s/unpackWARs=\"true\" autoDeploy=\"true\"/unpackWARs=\"false\" autoDeploy=\"false\" deployIgnore=\"\$\{deploy.ignore.pattern:-(adverse-events|applications|clinical-trials|impurities|products)\}\"/g" ${CATALINA_HOME}/conf/server.xml && \
@@ -93,4 +95,5 @@ FROM tomcat:9-jre11
         ln -s /tmp ${CATALINA_HOME}/temp
     COPY --from=build --chown=root ${CATALINA_HOME} ${CATALINA_HOME}
     WORKDIR /home/srs
-    CMD ["bash", "-c", "cd /home/srs && catalina.sh run"]
+    ENTRYPOINT [ "/entrypoint.sh" ]
+    CMD ["catalina.sh", "run"]
