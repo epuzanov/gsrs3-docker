@@ -1,8 +1,8 @@
 diff --git a/substances/pom.xml b/substances/pom.xml
-index cfc357b..e00470d 100644
+index 13ac079..0705d4f 100644
 --- a/substances/pom.xml
 +++ b/substances/pom.xml
-@@ -130,6 +130,11 @@
+@@ -140,6 +140,11 @@
              <artifactId>gsrs-spring-legacy-cache</artifactId>
              <version>${gsrs.starter.version}</version>
          </dependency>

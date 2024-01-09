@@ -63,7 +63,7 @@ The custom configuration file for the "gateway" module: /home/srs/conf/gateway.c
 
 ### Environment Varables
 - API_URL (http://localhost:8080/)
-- API_BASE_PATH
+- API_BASE_PATH (/ginas/app/)
 - APPLICATION_HOST (http://localhost:8080)
 - APPROVALID_GENERATOR (ix.ginas.utils.UNIIGenerator)
 - APPROVALID_NAME
