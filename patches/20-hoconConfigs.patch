@@ -803,10 +803,10 @@ index 0000000..770465b
 +    </Resources>
 +</Context>
 diff --git a/frontend/pom.xml b/frontend/pom.xml
-index e047c11..3cdeb1f 100644
+index 6b29837..ceaee84 100644
 --- a/frontend/pom.xml
 +++ b/frontend/pom.xml
-@@ -39,6 +39,11 @@
+@@ -49,6 +49,11 @@
              <artifactId>spring-boot-starter-test</artifactId>
              <scope>test</scope>
          </dependency>
@@ -828,7 +828,7 @@ index 0000000..2cd3eb0
 \ No newline at end of file
 diff --git a/frontend/src/main/resources/application.conf b/frontend/src/main/resources/application.conf
 new file mode 100644
-index 0000000..dc8a2e3
+index 0000000..3fa484b
 --- /dev/null
 +++ b/frontend/src/main/resources/application.conf
 @@ -0,0 +1,30 @@
@@ -840,7 +840,7 @@ index 0000000..dc8a2e3
 +server.servlet.context-path="/"${spring.application.name}
 +
 +#this is the prefix path for the front end
-+route.prefix="ginas/app/beta/"
++route.prefix="ginas/app/ui/"
 +route.prefix=${?FRONTEND_ROUTE_PREFIX}
 +gsrs.frontend.config.dir="classpath:/static/assets/data"
 +gsrs.frontend.config.dir=${?FRONTEND_CONFIG_DIR}
@@ -864,30 +864,16 @@ index 0000000..dc8a2e3
 +include "frontend.conf"
 diff --git a/frontend/src/main/resources/application.properties b/frontend/src/main/resources/application.properties
 deleted file mode 100644
-index 6d04429..0000000
+index e8f98d5..0000000
 --- a/frontend/src/main/resources/application.properties
 +++ /dev/null
-@@ -1,10 +0,0 @@
+@@ -1,6 +0,0 @@
 -server.port= 8082
--#this is the prefix path for the front end
--route.prefix= ginas/app/beta/
--
--
 -spring.application.name= frontend
 -management.endpoint.health.show-details=always
--
--#only used if using eureka client
+-gsrs.frontend.prefix = ginas/app/ui/
+-# Only used if using eureka client
 -eureka.client.serviceUrl.defaultZone= ${EUREKA_SERVER:#{http://localhost:8761/eureka}}
-diff --git a/frontend/src/main/resources/static/assets/data/config.json b/frontend/src/main/resources/static/assets/data/config.json
-index 70ef8a7..78315a7 100644
---- a/frontend/src/main/resources/static/assets/data/config.json
-+++ b/frontend/src/main/resources/static/assets/data/config.json
-@@ -1,4 +1,5 @@
- {
-+  "apiBaseUrl" : "/ginas/app/",
-   "version": "3.1",
-   "contactEmail": "ncatsgsrs@mail.nih.gov",
-   "displayMatchApplication": "false",
 diff --git a/frontend/src/main/webapp/META-INF/context.xml b/frontend/src/main/webapp/META-INF/context.xml
 new file mode 100644
 index 0000000..9e24fcd
@@ -901,10 +887,10 @@ index 0000000..9e24fcd
 +    </Resources>
 +</Context>
 diff --git a/gateway/pom.xml b/gateway/pom.xml
-index 92369f9..42d8980 100644
+index b48526b..d854d25 100644
 --- a/gateway/pom.xml
 +++ b/gateway/pom.xml
-@@ -59,6 +59,11 @@
+@@ -62,6 +62,11 @@
                  </exclusion>
              </exclusions>
          </dependency>
@@ -926,10 +912,10 @@ index 0000000..2cd3eb0
 \ No newline at end of file
 diff --git a/gateway/src/main/resources/application.conf b/gateway/src/main/resources/application.conf
 new file mode 100644
-index 0000000..98d88af
+index 0000000..fc9a92f
 --- /dev/null
 +++ b/gateway/src/main/resources/application.conf
-@@ -0,0 +1,309 @@
+@@ -0,0 +1,319 @@
 +##################################################################
 +# MAIN CONFIGURATION                                            ##
 +##################################################################
@@ -986,6 +972,8 @@ index 0000000..98d88af
 +gsrs.microservice.frontend.api.baseURL=${?MS_URL_FRONTEND}
 +gsrs.microservice.impurities.api.baseURL=${substanceAPI.BaseUrl}"impurities"
 +gsrs.microservice.impurities.api.baseURL=${?MS_URL_IMPURITIES}
++gsrs.microservice.invitropharmacology.api.baseURL=${substanceAPI.BaseUrl}"invitropharmacology"
++gsrs.microservice.invitropharmacology.api.baseURL=${?MS_URL_INVITRO_PHARMACOLOGY}
 +gsrs.microservice.products.api.baseURL=${substanceAPI.BaseUrl}"products"
 +gsrs.microservice.products.api.baseURL=${?MS_URL_PRODUCTS}
 +gsrs.microservice.ssg4m.api.baseURL=${substanceAPI.BaseUrl}"ssg4m"
@@ -998,53 +986,58 @@ index 0000000..98d88af
 +##################################################################
 +
 +zuul.routes = {
-+    "ui" = {
++    "00_ui_beta" = {
 +        "path" = "/ginas/app/beta/**",
-+        "url" = ${gsrs.microservice.frontend.api.baseURL}"/ginas/app/beta",
++        "url" = ${gsrs.microservice.frontend.api.baseURL}"/ginas/app/ui",
++        "serviceId" = "frontend_beta"
++    },
++    "01_ui_ui" = {
++        "path" = "/ginas/app/ui/**",
++        "url" = ${gsrs.microservice.frontend.api.baseURL}"/ginas/app/ui",
 +        "serviceId" = "frontend"
 +    },
 +    #############################
 +    #START applications section
 +    #############################
-+    "applications_core" = {
++    "10_applications_core" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/applications/**",
 +        "url" = ${gsrs.microservice.applications.api.baseURL}"/api/v1/applications",
 +        "serviceId" = "applications_core"
 +    },
-+    "applications_core_alt" = {
++    "11_applications_core_alt" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/applications(**)/**",
 +        "url" = ${gsrs.microservice.applications.api.baseURL}"/api/v1/applications",
 +        "serviceId" = "applications_core_alt"
 +    },
-+    "applications_all" = {
++    "12_applications_all" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/applicationsall/**",
 +        "url" = ${gsrs.microservice.applications.api.baseURL}"/api/v1/applicationsall",
 +        "serviceId" = "applications_all"
 +    },
-+    "applications_all_alt" = {
++    "13_applications_all_alt" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/applicationsall(**)/**",
 +        "url" = ${gsrs.microservice.applications.api.baseURL}"/api/v1/applicationsall",
 +        "serviceId" = "applications_all_alt"
 +    },
-+    "applications_darrts" = {
++    "14_applications_darrts" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/applicationsdarrts/**",
 +        "url" = ${gsrs.microservice.applications.api.baseURL}"/api/v1/applicationsdarrts",
 +        "serviceId" = "applications_darrts"
 +    },
-+    "applications_darrts_alt" = {
++    "15_applications_darrts_alt" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/applicationsdarrts(**)/**",
 +        "url" = ${gsrs.microservice.applications.api.baseURL}"/api/v1/applicationsdarrts",
 +        "serviceId" = "applications_darrts_alt"
 +    },
-+    "applications_searchcount" = {
++    "16_applications_searchcount" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/searchcounts/**",
 +        "url" = ${gsrs.microservice.applications.api.baseURL}"/api/v1/searchcounts",
 +        "serviceId" = "applications_searchcount"
 +    },
-+    "applications_searchcount_alt" = {
++    "17_applications_searchcount_alt" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/searchcounts(**)/**",
 +        "url" = ${gsrs.microservice.applications.api.baseURL}"/api/v1/searchcounts",
-+        "serviceId" = "applications_searchcount"
++        "serviceId" = "applications_searchcount_alt"
 +    },
 +    #############################
 +    #END applications section
@@ -1052,35 +1045,15 @@ index 0000000..98d88af
 +    #############################
 +    #START products section
 +    #############################
-+    "products_core" = {
++    "20_products_core" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/products/**",
 +        "url" = ${gsrs.microservice.products.api.baseURL}"/api/v1/products",
 +        "serviceId" = "products_core"
 +    },
-+    "products_core_alt" = {
++    "21_products_core_alt" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/products(**)/**",
 +        "url" = ${gsrs.microservice.products.api.baseURL}"/api/v1/products",
-+        "serviceId" = "products_core"
-+    },
-+    "products_all" = {
-+        "path" = ${?API_BASE_PATH}"/api/v1/productsall/**",
-+        "url" = ${gsrs.microservice.products.api.baseURL}"/api/v1/productsall",
-+        "serviceId" = "products_all"
-+    },
-+    "products_all_alt" = {
-+        "path" = ${?API_BASE_PATH}"/api/v1/productsall(**)/**",
-+        "url" = ${gsrs.microservice.products.api.baseURL}"/api/v1/productsall",
-+        "serviceId" = "products_all"
-+    },
-+    "products_elist" = {
-+        "path" = ${?API_BASE_PATH}"/api/v1/productselist/**",
-+        "url" = ${gsrs.microservice.products.api.baseURL}"/api/v1/productselist",
-+        "serviceId" = "products_elist"
-+    },
-+    "products_elist_alt" = {
-+        "path" = ${?API_BASE_PATH}"/api/v1/productselist(**)/**",
-+        "url" = ${gsrs.microservice.products.api.baseURL}"/api/v1/productselist",
-+        "serviceId" = "products_elist"
++        "serviceId" = "products_core_alt"
 +    },
 +    #############################
 +    #END products section
@@ -1088,41 +1061,57 @@ index 0000000..98d88af
 +    #############################
 +    #START impurities section
 +    #############################
-+    "impurities_core" = {
++    "30_impurities_core" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/impurities/**",
 +        "url" = ${gsrs.microservice.impurities.api.baseURL}"/api/v1/impurities",
 +        "serviceId" = "impurities_core"
 +    },
-+    "impurities_core_alt" = {
++    "31_impurities_core_alt" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/impurities(**)/**",
 +        "url" = ${gsrs.microservice.impurities.api.baseURL}"/api/v1/impurities",
-+        "serviceId" = "impurities_core"
++        "serviceId" = "impurities_core_alt"
 +    },
 +    #############################
 +    #END impurities section
 +    #############################
 +    #############################
++    #START invitro-pharmacology  section
++    #############################
++    "40_invitropharmacology_core" = {
++        "path" = ${?API_BASE_PATH}"/api/v1/invitropharmacology/**",
++        "url" = ${gsrs.microservice.invitropharmacology.api.baseURL}"/api/v1/invitropharmacology",
++        "serviceId" = "invitropharmacology_core"
++    },
++    "41_invitropharmacology_core_alt" = {
++        "path" = ${?API_BASE_PATH}"/api/v1/invitropharmacology(**)/**",
++        "url" = ${gsrs.microservice.invitropharmacology.api.baseURL}"/api/v1/invitropharmacology",
++        "serviceId" = "invitropharmacology_core_alt"
++    },
++    #############################
++    #END invitro-pharmacology  section
++    #############################
++    #############################
 +    #START clinical_trials section
 +    #############################
-+    "clinical_trials_us" = {
++    "50_clinical_trials_us" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/clinicaltrialsus/**",
 +        "url" = ${gsrs.microservice.clinicaltrialsus.api.baseURL}"/api/v1/clinicaltrialsus",
 +        "serviceId" = "clinical_trials_us"
 +    },
-+    "clinical_trials_us_alt" = {
++    "51_clinical_trials_us_alt" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/clinicaltrialsus(**)/**",
 +        "url" = ${gsrs.microservice.clinicaltrialsus.api.baseURL}"/api/v1/clinicaltrialsus",
-+        "serviceId" = "clinical_trials_us"
++        "serviceId" = "clinical_trials_us_alt"
 +    },
-+    "clinical_trials_europe" = {
++    "52_clinical_trials_europe" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/clinicaltrialseurope/**",
 +        "url" = ${gsrs.microservice.clinicaltrialseurope.api.baseURL}"/api/v1/clinicaltrialseurope",
 +        "serviceId" = "clinical_trials_europe"
 +    },
-+    "clinical_trials_europe_alt" = {
++    "53_clinical_trials_europe_alt" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/clinicaltrialseurope(**)/**",
 +        "url" = ${gsrs.microservice.clinicaltrialseurope.api.baseURL}"/api/v1/clinicaltrialseurope",
-+        "serviceId" = "clinical_trials_europe"
++        "serviceId" = "clinical_trials_europe_alt"
 +    },
 +    #############################
 +    #END clinical_trials section
@@ -1130,35 +1119,35 @@ index 0000000..98d88af
 +    #############################
 +    #START adverse-eventpt section
 +    #############################
-+    "adverseeventpt_core" = {
++    "60_adverseeventpt_core" = {
 +       "path" = ${?API_BASE_PATH}"/api/v1/adverseeventpt/**",
 +       "url" = ${gsrs.microservice.adverseevents.api.baseURL}"/api/v1/adverseeventpt",
 +       "serviceId" = "adverseeventpt_core"
 +    },
-+    "adverseeventpt_core_alt" = {
++    "61_adverseeventpt_core_alt" = {
 +       "path" = ${?API_BASE_PATH}"/api/v1/adverseeventpt(**)/**",
 +       "url" = ${gsrs.microservice.adverseevents.api.baseURL}"/api/v1/adverseeventpt",
-+       "serviceId" = "adverseeventpt_core"
++       "serviceId" = "adverseeventpt_core_alt"
 +    },
-+    "adverseeventdme_core" = {
++    "62_adverseeventdme_core" = {
 +       "path" = ${?API_BASE_PATH}"/api/v1/adverseeventdme/**",
 +       "url" = ${gsrs.microservice.adverseevents.api.baseURL}"/api/v1/adverseeventdme",
 +       "serviceId" = "adverseeventdme_core"
 +    },
-+    "adverseeventdme_core_alt" = {
++    "63_adverseeventdme_core_alt" = {
 +       "path" = ${?API_BASE_PATH}"/api/v1/adverseeventdme(**)/**",
 +       "url" = ${gsrs.microservice.adverseevents.api.baseURL}"/api/v1/adverseeventdme",
-+       "serviceId" = "adverseeventdme_core"
++       "serviceId" = "adverseeventdme_core_alt"
 +    },
-+    "adverseeventcvm_core" = {
++    "64_adverseeventcvm_core" = {
 +       "path" = ${?API_BASE_PATH}"/api/v1/adverseeventcvm/**",
 +       "url" = ${gsrs.microservice.adverseevents.api.baseURL}"/api/v1/adverseeventcvm",
 +       "serviceId" = "adverseeventcvm_core"
 +    },
-+    "adverseeventcvm_core_alt" = {
++    "65_adverseeventcvm_core_alt" = {
 +       "path" = ${?API_BASE_PATH}"/api/v1/adverseeventcvm(**)/**",
 +       "url" = ${gsrs.microservice.adverseevents.api.baseURL}"/api/v1/adverseeventcvm",
-+       "serviceId" = "adverseeventcvm_core"
++       "serviceId" = "adverseeventcvm_core_alt"
 +    },
 +    #############################
 +    #END adverse-eventpt section
@@ -1166,37 +1155,44 @@ index 0000000..98d88af
 +    #############################
 +    #START SSG4 section
 +    #############################
-+    "ssg4m_core" = {
++    "70_ssg4m_core" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/ssg4m/**",
 +        "url" = ${gsrs.microservice.ssg4m.api.baseURL}"/api/v1/ssg4m",
 +        "serviceId" = "ssg4m_core"
 +    },
++    "71_ssg4m_core_alt" = {
++        "path" = ${?API_BASE_PATH}"/api/v1/ssg4m(**)/**",
++        "url" = ${gsrs.microservice.ssg4m.api.baseURL}"/api/v1/ssg4m",
++        "serviceId" = "ssg4m_core_alt"
++    },
 +    #############################
 +    #END SSG4 section
 +    #############################
-+    "substances_core" = {
++    "90_substances_core" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/**",
 +        "url" = ${gsrs.microservice.substances.api.baseURL}"/api/v1",
 +        "serviceId" = "substances_core"
 +    },
 +
-+    "root" = {
++    "91_root" = {
 +        "path" = "/",
-+        "url" = ${gsrs.microservice.frontend.api.baseURL}"/ginas/app/beta",
++        "url" = ${gsrs.microservice.frontend.api.baseURL}"/ginas/app/ui",
 +        "serviceId" = "root"
 +    },
-+    "api_legacy_ginas_app" = {
++    "92_api_legacy_ginas_app" = {
 +        "path" = "/ginas/app/**",
 +        "url" = ${gsrs.microservice.substances.api.baseURL},
++        "serviceId" = "ginas_app",
 +        "stripPrefix": true
 +    },
-+    "api_legacy_gsrs_app" = {
++    "93_api_legacy_gsrs_app" = {
 +        "path" = "/gsrs/app/**",
 +        "url" = ${gsrs.microservice.substances.api.baseURL},
++        "serviceId" = "gsrs_app",
 +        "stripPrefix": true
 +    },
 +    #fallback anything else goes to substances
-+    "legacy" = {
++    "99_legacy" = {
 +        "path" = "/**",
 +        "url" = ${gsrs.microservice.substances.api.baseURL},
 +        "serviceId" = "substances"
@@ -1241,10 +1237,13 @@ index 0000000..98d88af
 +include "gateway.conf"
 diff --git a/gateway/src/main/resources/application.yml b/gateway/src/main/resources/application.yml
 deleted file mode 100644
-index 740997c..0000000
+index 3e17c23..0000000
 --- a/gateway/src/main/resources/application.yml
 +++ /dev/null
-@@ -1,119 +0,0 @@
+@@ -1,243 +0,0 @@
+-
+-api.base.path: ${API_BASE_PATH:/ginas/app}
+-
 -gsrs:
 -  gateway:
 -    server:
@@ -1269,52 +1268,169 @@ index 740997c..0000000
 -  #this sets sensitiveHeaders to empty list so cookies and auth headers are passed through both ways
 -  sensitiveHeaders:
 -  routes:
--    ui:
+-    ui_beta:
 -      path: /ginas/app/beta/**
+-      url: http://localhost:8082
+-      serviceId: frontend
+-      stripPrefix: false
+-    ui_ui:
+-      path: /ginas/app/ui/**
 -      url: http://localhost:8082
 -      serviceId: frontend
 -      stripPrefix: false
 -
 -    #############################
+-    #START adverse-events section
+-    #############################
+-    adverseeventpt:
+-      path: ${api.base.path}/api/v1/adverseeventpt/**
+-      url: http://localhost:8086/api/v1/adverseeventpt
+-      serviceId: adverseeventpt
+-    adverseeventpt_alt:
+-      path: ${api.base.path}/api/v1/adverseeventpt(**)/**
+-      url: http://localhost:8086/api/v1/adverseeventpt
+-      serviceId: adverseeventpt
+-    adverseeventdme:
+-      path: ${api.base.path}/api/v1/adverseeventdme/**
+-      url: http://localhost:8086/api/v1/adverseeventdme
+-      serviceId: adverseeventdme
+-    adverseeventdme_alt:
+-      path: ${api.base.path}/api/v1/adverseeventdme(**)/**
+-      url: http://localhost:8086/api/v1/adverseeventdme
+-      serviceId: adverseeventdme
+-    adverseeventcvm:
+-      path: ${api.base.path}/api/v1/adverseeventcvm/**
+-      url: http://localhost:8086/api/v1/adverseeventcvm
+-      serviceId: adverseeventcvm
+-    adverseeventcvm_alt:
+-      path: ${api.base.path}/api/v1/adverseeventcvm(**)/**
+-      url: http://localhost:8086/api/v1/adverseeventcvm
+-      serviceId: adverseeventcvm
+-    #############################
+-    #END adverse-events section
+-    #############################
+-
+-    #############################
 -    #START applications section
 -    #############################
 -    applications_core:
--      path: /api/v1/applications/**
--      url: http://localhost:8083/applications/api/v1/applications
+-      path: ${api.base.path}/api/v1/applications/**
+-      url: http://localhost:8083/api/v1/applications
 -      serviceId: applications_core
 -    applications_core_alt:
--      path: /api/v1/applications(**)/**
--      url: http://localhost:8083/applications/api/v1/applications
+-      path: ${api.base.path}/api/v1/applications(**)/**
+-      url: http://localhost:8083/api/v1/applications
 -      serviceId: applications_core_alt
 -    applications_all:
--      path: /api/v1/applicationsall/**
--      url: http://localhost:8083/applications/api/v1/applicationsall
+-      path: ${api.base.path}/api/v1/applicationsall/**
+-      url: http://localhost:8083/api/v1/applicationsall
 -      serviceId: applications_all
 -    applications_all_alt:
--      path: /api/v1/applicationsall(**)/**
--      url: http://localhost:8083/applications/api/v1/applicationsall
+-      path: ${api.base.path}/api/v1/applicationsall(**)/**
+-      url: http://localhost:8083/api/v1/applicationsall
 -      serviceId: applications_all_alt
 -    applications_darrts:
--      path: /api/v1/applicationsdarrts/**
--      url: http://localhost:8083/applications/api/v1/applicationsdarrts
+-      path: ${api.base.path}/api/v1/applicationsdarrts/**
+-      url: http://localhost:8083/api/v1/applicationsdarrts
 -      serviceId: applications_darrts
 -    applications_darrts_alt:
--      path: /api/v1/applicationsdarrts(**)/**
--      url: http://localhost:8083/applications/api/v1/applicationsdarrts
+-      path: ${api.base.path}/api/v1/applicationsdarrts(**)/**
+-      url: http://localhost:8083/api/v1/applicationsdarrts
 -      serviceId: applications_darrts_alt
 -    applications_searchcount:
--      path: /api/v1/searchcounts/**
--      url: http://localhost:8083/applications/api/v1/searchcounts
+-      path: ${api.base.path}/api/v1/searchcounts/**
+-      url: http://localhost:8083/api/v1/searchcounts
 -      serviceId: applications_searchcount
 -    applications_searchcount_alt:
--      path: /api/v1/searchcounts(**)/**
--      url: http://localhost:8083/applications/api/v1/searchcounts
+-      path: ${api.base.path}/api/v1/searchcounts(**)/**
+-      url: http://localhost:8083/api/v1/searchcounts
 -      serviceId: applications_searchcount
--
 -    #############################
 -    #END applications section
 -    #############################
 -
+-    #############################
+-    #START clinical-trials section
+-    #############################
+-    clinical_trials_us:
+-      path: ${api.base.path}/api/v1/clinicaltrialsus/**
+-      url: http://localhost:8089/api/v1/clinicaltrialsus
+-      serviceId: clinical_trials_us
+-    clinical_trials_us_alt:
+-      path: ${api.base.path}/api/v1/clinicaltrialsus(**)/**
+-      url: http://localhost:8089/api/v1/clinicaltrialsus
+-      serviceId: clinical_trials_us
+-    clinical_trials_europe:
+-      path: ${api.base.path}/api/v1/clinicaltrialseurope/**
+-      url: http://localhost:8089/api/v1/clinicaltrialseurope
+-      serviceId: clinical_trials_europe
+-    clinical_trials_europe_alt:
+-      path: ${api.base.path}/api/v1/clinicaltrialseurope(**)/**
+-      url: http://localhost:8089/api/v1/clinicaltrialseurope
+-      serviceId: clinical_trials_europe  
+-    #############################
+-    #END clinical-trials section
+-    #############################
+-
+-    #############################
+-    #START impurities section
+-    #############################
+-    impurities_core:
+-      path: ${api.base.path}/api/v1/impurities/**
+-      url: http://localhost:8085/api/v1/impurities
+-      serviceId: impurities_core
+-    impurities_core_alt:
+-      path: ${api.base.path}/api/v1/impurities(**)/**
+-      url: http://localhost:8085/api/v1/impurities
+-      serviceId: impurities_core
+-    #############################
+-    #END impurities section
+-    #############################
+-
+-    #############################
+-    #START invitro-pharmacology  section
+-    #############################
+-    invitropharmacology_core:
+-      path: ${api.base.path}/api/v1/invitropharmacology/**
+-      url: http://localhost:8090/api/v1/invitropharmacology
+-      serviceId: invitropharmacology_core
+-    #############################
+-    #END invitro-pharmacology  section
+-    #############################
+-
+-    #############################
+-    #START products section
+-    #############################
+-    products_core:
+-      path: ${api.base.path}/api/v1/products/**
+-      url: http://localhost:8084/api/v1/products
+-      serviceId: products_core
+-    products_core_alt:
+-      path: ${api.base.path}/api/v1/products(**)/**
+-      url: http://localhost:8084/api/v1/products
+-      serviceId: products_core
+-    #############################
+-    #END products section
+-    #############################
+-
+-    #############################
+-    #START ssg4m section
+-    #############################
+-    ssg4m_core:
+-      path: ${api.base.path}/api/v1/ssg4m/**
+-      url: http://localhost:8088/ssg4m
+-      serviceId: ssg4m_core
+-    ssg4m_core_alt:
+-      path: ${api.base.path}/api/v1/ssg4m(**)/**
+-      url: http://localhost:8088/ssg4m
+-      serviceId: ssg4m_core_alt
+-    #############################
+-    #END ssg4m section
+-    #############################
+-
+-    #############################
+-    #START substances/legacy section
+-    #############################
 -    api_legacy_ginas_app:
 -      path: /ginas/app/**
 -      url: http://localhost:8080
@@ -1329,6 +1445,10 @@ index 740997c..0000000
 -      path: /**
 -      url: http://localhost:8080
 -      serviceId: substances
+-    #############################
+-    #END substances/legacy section
+-    #############################
+-
 -  ignored-patterns:
 -      - "/actuator/health"
 -
@@ -1557,8 +1677,206 @@ index 0000000..c63deb3
 +        <PreResources className="org.apache.catalina.webresources.DirResourceSet" base="${user.dir}/conf" internalPath="/" webAppMount="/WEB-INF/classes" />
 +    </Resources>
 +</Context>
+diff --git a/invitro-pharmacology/src/main/resources/application.conf b/invitro-pharmacology/src/main/resources/application.conf
+index 105ef90..45d8980 100644
+--- a/invitro-pharmacology/src/main/resources/application.conf
++++ b/invitro-pharmacology/src/main/resources/application.conf
+@@ -1,82 +1,107 @@
+ include "invitro-pharmacology-core.conf"
+ 
+-server.port=8090
+-
+-ix.home="ginas.ix"
++##################################################################
++# MAIN CONFIGURATION                                            ##
++##################################################################
+ 
+-application.host= ${?GATEWAY_HOST}
+ spring.application.name="invitro-pharmacology"
+-#this is what it registers under eureka
+-eureka.instance.hostname="invitro-pharmacology"
++server.servlet.context-path="/"${spring.application.name}
++ix.home=${spring.application.name}".ix"
++ix.home=${?IX_HOME}
++ix.home_substances="substances.ix"
++ix.home_substances=${?IX_HOME___SUBSTANCES}
+ 
+-#turn off eureka for now
+-eureka.client.enabled=false
+-eureka.client.enable=false
++application.host="http://localhost:8080"
++application.host=${?APPLICATION_HOST}
+ 
++# Secure session off for dev, but if using HTTPS it's better to have it on
++gsrs.sessions.sessionSecure=false
++
++# Since this currently extends substances, we must turn off molwitch
++# or else need to implement it
++gsrs.substances.molwitch.enabled=false
++
++# PUT YOUR PERSONAL EXTENSIONS AND ADDITIONS HERE
++#debug=true
++spring.main.allow-bean-definition-overriding=true
+ 
+ ##################################################################
+ # SPRING BOOT ACTUATOR SETTINGS FOR MICROSERVICE HEALTH CHECKS  ##
+ ##################################################################
++
+ # turn off rabbit mq check for now since we don't use it otherwise it wil say we ar down
+ management.health.rabbit.enabled: false
+ 
+-# PUT YOUR PERSONAL EXTENSIONS AND ADDITIONS HERE
+-#debug=true
+-spring.main.allow-bean-definition-overriding=true
++##################################################################
++# EUREKA SETTINGS                                               ##
++##################################################################
+ 
+-#this is how HOCON does default values
+-eureka.client.serviceUrl.defaultZone= "http://localhost:8761/eureka"
+-eureka.client.serviceUrl.defaultZone= ${?EUREKA_SERVER}
++eureka.instance.hostname=${spring.application.name}
++eureka.client.serviceUrl.defaultZone="http://localhost:8761/eureka"
++eureka.client.serviceUrl.defaultZone=${?EUREKA_SERVICE_URL}
++#turn off eureka for now
++eureka.client.enabled=false
++eureka.client.enabled=${?EUREKA_CLIENT_ENABLED}
+ 
+-ix.h2 {
+-        base = ./${ix.home}/h2
+-      }
++##################################################################
++# SUBSTANCE DATABASE CONNECTION                                 ##
++##################################################################
+ 
++spring.datasource.url="jdbc:h2:file:"${ix.home_substances}"/h2/sprinxight;AUTO_SERVER=TRUE"
++spring.datasource.url=${?DB_URL_SUBSTANCES}
++spring.datasource.username=${?DB_USERNAME}
++spring.datasource.password=${?DB_PASSWORD}
++spring.datasource.connectionTimeout=120000
++spring.datasource.connectionTimeout=${?DB_CONNECTION_TIMEOUT}
++spring.datasource.maximumPoolSize=${?DB_MAXIMUM_POOL_SIZE}
++spring.jpa.database-platform=${?DB_DIALECT}
++spring.jpa.hibernate.ddl-auto=none
++spring.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
++spring.hibernate.show-sql=false
+ 
+ ##################################################################
+ # DATABASE CONNECTION                                           ##
+ ##################################################################
+ 
+-# H2 Database Connection BEGIN *******
+-spring.datasource.url="jdbc:h2:file:../substances/ginas.ix/h2/sprinxight;AUTO_SERVER=TRUE"
+-spring.datasource.driverClassName=org.h2.Driver
+-spring.datasource.connectionTimeout=120000
+-spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+-spring.jpa.hibernate.ddl-auto=none
++ix.h2 {
++        base = ./${ix.home}/h2
++      }
+ 
+ invitropharmacology.datasource.url="jdbc:h2:"${ix.h2.base}"/appinxight;AUTO_SERVER=TRUE"
+-invitropharmacology.datasource.driverClassName=org.h2.Driver
++invitropharmacology.datasource.url=${?DB_URL_INVITRO_PHARMACOLOGY}
++invitropharmacology.datasource.username=${?DB_USERNAME}
++invitropharmacology.datasource.password=${?DB_PASSWORD}
+ invitropharmacology.datasource.connectionTimeout=120000
+-invitropharmacology.jpa.database-platform=org.hibernate.dialect.H2Dialect
++invitropharmacology.datasource.connectionTimeout=${?DB_CONNECTION_TIMEOUT}
++invitropharmacology.datasource.maximumPoolSize=${?DB_MAXIMUM_POOL_SIZE}
++invitropharmacology.jpa.database-platform=${?DB_DIALECT}
+ invitropharmacology.jpa.hibernate.ddl-auto=update
+-# H2 Database Connection END ********
+-
+-# !!!!! IMPORTANT, KEEP TO "none" for non-memory databases such as ORACLE, MYSQL, etc.
+-# Otherwise all the tables can be dropped or deleted
+-# spring.jpa.hibernate.ddl-auto=none
+-# invitropharmacology.jpa.hibernate.ddl-auto=none
++invitropharmacology.jpa.hibernate.ddl-auto=${?DB_DDL_AUTO}
++invitropharmacology.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
++invitropharmacology.hibernate.show-sql=false
+ 
+ ##################################################################
+-# SUBSTANCE API CONFIGURATION BEGIN                             ##
++# API SETTINGS                                                  ##
+ ##################################################################
+ 
+ # need to reconsider this a bit
+ substanceAPI.BaseUrl="http://localhost:8080/"
++substanceAPI.BaseUrl=${?API_URL}
+ 
+ # NEED THIS for Substance API, Substance dependencies gsrs-module-substances-api
+-gsrs.microservice.substances.api.baseURL="http://localhost:8081/"
++gsrs.microservice.substances.api.baseURL=${substanceAPI.BaseUrl}"substances"
++gsrs.microservice.substances.api.baseURL=${?MS_URL_SUBSTANCES}
+ 
+ # Substance API Substance Key Type, choose one (UUID, APPROVAL_ID, or BDNUM)
+ substance.linking.keyType.invitroPharmacologyKeyType="UUID"
+ 
+-# Choose one (api or entitymanager) to use Substance API or Substance Entity Manager for InvitroPharmacologyIndexValueMaker
+-substance.invitropharmacology.ivm.substancekey.resolver.touse="entitymanager"
++# Choose one (api or entitymanager) to use Substance API or Substance Entity Manager for ProductSubstanceIndexValueMaker
++substance.product.ivm.substancekey.resolver.touse="entitymanager"
+ 
+-# ***** SUBSTANCE API CONFIGURATION END ******
+ 
+-##########################################################################
+-# CONFIGURATIONS VALIDATORS, PROCESSORS, EXPORTERS, INDEXERS, etc       ##
+-##########################################################################
++##################################################################
++# CONFIGURATIONS VALIDATORS, PROCESSORS, INDEXERS, EXPORT, etc  ##
++##################################################################
+ 
+ gsrs.validators.invitropharmacology = [
+     {
+@@ -93,20 +118,18 @@ gsrs.validators.invitropharmacology = [
+ gsrs.entityprocessors = [
+     {
+         "class" = "gov.hhs.gsrs.invitropharmacology.models.InvitroPharmacology",
+-	    "processor" = "gov.hhs.gsrs.invitropharmacology.processors.InvitroPharmacologyProcessor"
++        "processor" = "gov.hhs.gsrs.invitropharmacology.processors.InvitroPharmacologyProcessor"
+     }
+ ]
+ 
+ # NEED THIS TO AVOID CVApi ERROR
+-gsrs.entityprocessors = []
++gsrs.entityProcessors = []
+ 
+-# EXPORTERS
+ ix.ginas.export.factories.invitropharmacology = [
+     "gov.hhs.gsrs.invitropharmacology.exporters.InvitroPharmacologyExporterFactory",
+     "gov.hhs.gsrs.invitropharmacology.exporters.InvitroPharmacologyTextExporterFactory"
+ ]
+ 
+-# INDEXERS
+ gsrs.indexers.list=[
+     {
+         "indexer" = "gov.hhs.gsrs.invitropharmacology.indexers.InvitroPharmacologyIndexValueMaker",
+@@ -114,3 +137,22 @@ gsrs.indexers.list=[
+     }
+ ]
+ 
++##################################################################
++# LEGACY AUTHENTICATION                                         ##
++##################################################################
++
++ix.authentication.allownonauthenticated = ${?AUTH_ALLOW_NONAUTH}
++ix.authentication.autoregister = ${?AUTH_AUTOREGISTER}
++ix.authentication.autoregisteractive = ${?AUTH_AUTOREGISTERACTIVE}
++ix.authentication.sysadmin-email = ${?AUTH_SYSADMIN_EMAIL}
++ix.authentication.trustheader = ${?AUTH_TRUST_HEADER}
++ix.authentication.usernameheader = ${?AUTH_USERNAME_HEADER}
++ix.authentication.useremailheader = ${?AUTH_EMAIL_HEADER}
++ix.authentication.userrolesheader = ${?AUTH_ROLES_HEADER}
++
++##################################################################
++# CUSTOM CONFIGURATION                                          ##
++##################################################################
++
++include "conf/invitro-pharmacology.conf"
++include "invitro-pharmacology.conf"
 diff --git a/products/src/main/resources/application.conf b/products/src/main/resources/application.conf
-index 8005d8c..40f5f93 100644
+index 2b27d22..2866115 100644
 --- a/products/src/main/resources/application.conf
 +++ b/products/src/main/resources/application.conf
 @@ -1,20 +1,18 @@
@@ -1592,16 +1910,14 @@ index 8005d8c..40f5f93 100644
  
  # Secure session off for dev, but if using HTTPS it's better to have it on
  gsrs.sessions.sessionSecure=false
-@@ -23,50 +21,71 @@ gsrs.sessions.sessionSecure=false
+@@ -23,57 +21,76 @@ gsrs.sessions.sessionSecure=false
  # or else need to implement it
  gsrs.substances.molwitch.enabled=false
  
--# need to reconsider this a bit
--substanceAPI.BaseUrl="http://localhost:8080/"
 +# PUT YOUR PERSONAL EXTENSIONS AND ADDITIONS HERE
 +#debug=true
 +spring.main.allow-bean-definition-overriding=true
- 
++
  ##################################################################
  # SPRING BOOT ACTUATOR SETTINGS FOR MICROSERVICE HEALTH CHECKS  ##
  ##################################################################
@@ -1631,7 +1947,7 @@ index 8005d8c..40f5f93 100644
  
  ##################################################################
 -# DATABASE CONNECTION                                           ##
-+# SUBSTANCES DATABASE CONNECTION                                ##
++# SUBSTANCE DATABASE CONNECTION                                 ##
  ##################################################################
  
 -# H2 Database Connection
@@ -1663,65 +1979,69 @@ index 8005d8c..40f5f93 100644
  
  product.datasource.url="jdbc:h2:"${ix.h2.base}"/appinxight;AUTO_SERVER=TRUE"
 -product.datasource.driverClassName=org.h2.Driver
--product.datasource.connectionTimeout=1120000
++product.datasource.url=${?DB_URL_PRODUCTS}
++product.datasource.username=${?DB_USERNAME}
++product.datasource.password=${?DB_PASSWORD}
+ product.datasource.connectionTimeout=120000
 -product.datasource.username="sa"
 -product.datasource.password=""
 -product.jpa.database-platform=org.hibernate.dialect.H2Dialect
 -# !!!!! IMPORTANT, KEEP TO "none" for non-memory databases such as ORACLE, MYSQL, etc.
 -# Otherwise all the tables can be dropped or deleted. Can use update for H2.
-+product.datasource.url=${?DB_URL_PRODUCTS}
-+product.datasource.username=${?DB_USERNAME}
-+product.datasource.password=${?DB_PASSWORD}
-+product.datasource.connectionTimeout=120000
 +product.datasource.connectionTimeout=${?DB_CONNECTION_TIMEOUT}
 +product.datasource.maximumPoolSize=${?DB_MAXIMUM_POOL_SIZE}
 +product.jpa.database-platform=${?DB_DIALECT}
  product.jpa.hibernate.ddl-auto=update
+-
 +product.jpa.hibernate.ddl-auto=${?DB_DDL_AUTO}
 +product.jpa.hibernate.use-new-id-generator-mappings=${?DB_USE_NEW_ID_GENERATOR_MAPPINGS}
 +product.hibernate.show-sql=false
-+
-+##################################################################
-+# API SETTINGS                                                  ##
-+##################################################################
- 
-+substanceAPI.BaseUrl="http://localhost:8080/"
-+substanceAPI.BaseUrl=${?API_URL}
  
  ##################################################################
- # CONFIGURATIONS VALIDATORS, PROCESSORS, EXPORT, etc            ##
-@@ -80,14 +99,14 @@ gsrs.validators.products = [
- ]
+-# SUBSTANCE API CONFIGURATION BEGIN                             ##
++# API SETTINGS                                                  ##
+ ##################################################################
  
- # NOT SURE IF WE NEED THIS OR NOT
--gsrs.entityProcessors = [
-+gsrs.entityprocessors = [
+ # need to reconsider this a bit
+ substanceAPI.BaseUrl="http://localhost:8080/"
++substanceAPI.BaseUrl=${?API_URL}
+ 
+ # NEED THIS for Substance API, Substance dependencies gsrs-module-substances-api
+-gsrs.microservice.substances.api.baseURL="http://localhost:8081/"
++gsrs.microservice.substances.api.baseURL=${substanceAPI.BaseUrl}"substances"
++gsrs.microservice.substances.api.baseURL=${?MS_URL_SUBSTANCES}
+ 
+ # Substance API Substance Key Type, choose one (UUID, APPROVAL_ID, or BDNUM)
+ substance.linking.keyType.productKeyType="UUID"
+@@ -81,8 +98,6 @@ substance.linking.keyType.productKeyType="UUID"
+ # Choose one (api or entitymanager) to use Substance API or Substance Entity Manager for ProductSubstanceIndexValueMaker
+ substance.product.ivm.substancekey.resolver.touse="entitymanager"
+ 
+-# ***** SUBSTANCE API CONFIGURATION END ******
+-
+ 
+ ##################################################################
+ # CONFIGURATIONS VALIDATORS, PROCESSORS, INDEXERS, EXPORT, etc  ##
+@@ -99,12 +114,12 @@ gsrs.validators.products = [
+ gsrs.entityprocessors = [
      {
          "class" = "gov.hhs.gsrs.products.product.models.Product",
--		"processor" = "gov.hhs.gsrs.products.product.processors.ProductProcessor"
+-	    "processor" = "gov.hhs.gsrs.products.product.processors.ProductProcessor"
 +        "processor" = "gov.hhs.gsrs.products.product.processors.ProductProcessor"
-     },
-     {
-         "class" = "gov.hhs.gsrs.products.productelist.models.ProductElist",
--		"processor" = "gov.hhs.gsrs.products.productelist.processors.ProductElistProcessor"
-+        "processor" = "gov.hhs.gsrs.products.productelist.processors.ProductElistProcessor"
-     },
-     {
-         "class" = "gov.hhs.gsrs.products.productall.models.ProductMainAll",
-@@ -95,6 +114,9 @@ gsrs.entityProcessors = [
      }
  ]
  
-+# NEED THIS TO AVOID CVApi ERROR
+ # NEED THIS TO AVOID CVApi ERROR
+-gsrs.entityprocessors = []
 +gsrs.entityProcessors = []
-+
- ix.ginas.export.factories.productsall = [
-     "gov.hhs.gsrs.products.productall.exporters.ProductAllExporterFactory"
- ]
-@@ -106,4 +128,22 @@ gsrs.indexers.list=[
+ 
+ ix.ginas.export.factories.products = [
+     "gov.hhs.gsrs.products.product.exporters.ProductExporterFactory",
+@@ -117,3 +132,23 @@ gsrs.indexers.list=[
+         "class" = "gov.hhs.gsrs.products.product.models.Product"
      }
  ]
- 
++
 +##################################################################
 +# LEGACY AUTHENTICATION                                         ##
 +##################################################################
@@ -1738,7 +2058,7 @@ index 8005d8c..40f5f93 100644
 +##################################################################
 +# CUSTOM CONFIGURATION                                          ##
 +##################################################################
- 
++
 +include "conf/products.conf"
 +include "products.conf"
 diff --git a/products/src/main/webapp/META-INF/context.xml b/products/src/main/webapp/META-INF/context.xml
@@ -1753,8 +2073,20 @@ index 0000000..1951bdc
 +        <PreResources className="org.apache.catalina.webresources.DirResourceSet" base="${user.dir}/conf" internalPath="/" webAppMount="/WEB-INF/classes" />
 +    </Resources>
 +</Context>
+diff --git a/ssg4m/src/main/resources/META-INF/context.xml b/ssg4m/src/main/resources/META-INF/context.xml
+new file mode 100644
+index 0000000..97fedea
+--- /dev/null
++++ b/ssg4m/src/main/resources/META-INF/context.xml
+@@ -0,0 +1,6 @@
++<Context docBase="ssg4m">
++    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-\d+\.\d+\.\d+\.\d+}"/>
++    <Resources allowLinking="true" className="org.apache.catalina.webresources.StandardRoot">
++        <PreResources className="org.apache.catalina.webresources.DirResourceSet" base="${user.dir}/conf" internalPath="/" webAppMount="/WEB-INF/classes" />
++    </Resources>
++</Context>
 diff --git a/ssg4m/src/main/resources/application.conf b/ssg4m/src/main/resources/application.conf
-index 08d3d73..e9cec10 100644
+index b1a1bd3..e9cec10 100644
 --- a/ssg4m/src/main/resources/application.conf
 +++ b/ssg4m/src/main/resources/application.conf
 @@ -1,60 +1,91 @@
@@ -1857,7 +2189,7 @@ index 08d3d73..e9cec10 100644
  
 -# !!!!! IMPORTANT, KEEP TO "none" for non-memory databases such as ORACLE, MYSQL, etc.
 -# Otherwise all the tables can be dropped or deleted
--spring.jpa.hibernate.ddl-auto=none
+-# spring.jpa.hibernate.ddl-auto=none
 +##################################################################
 +# API SETTINGS                                                  ##
 +##################################################################
@@ -1888,20 +2220,8 @@ index 08d3d73..e9cec10 100644
  
 +include "conf/ssg4m.conf"
 +include "ssg4m.conf"
-diff --git a/ssg4m/src/main/resources/META-INF/context.xml b/ssg4m/src/main/resources/META-INF/context.xml
-new file mode 100644
-index 0000000..97fedea
---- /dev/null
-+++ b/ssg4m/src/main/resources/META-INF/context.xml
-@@ -0,0 +1,6 @@
-+<Context docBase="ssg4m">
-+    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-\d+\.\d+\.\d+\.\d+}"/>
-+    <Resources allowLinking="true" className="org.apache.catalina.webresources.StandardRoot">
-+        <PreResources className="org.apache.catalina.webresources.DirResourceSet" base="${user.dir}/conf" internalPath="/" webAppMount="/WEB-INF/classes" />
-+    </Resources>
-+</Context>
 diff --git a/substances/src/main/resources/application.conf b/substances/src/main/resources/application.conf
-index b808b73..c382d39 100644
+index 40c9131..31537e8 100644
 --- a/substances/src/main/resources/application.conf
 +++ b/substances/src/main/resources/application.conf
 @@ -1,46 +1,98 @@
@@ -2665,8 +2985,8 @@ index b808b73..c382d39 100644
              "codeSystems" :["CAS", "ChemBL", "NCI", "NSC", "EINECS"]
          }
      },
-@@ -418,9 +462,28 @@ gsrs.product.ivm.search.max.fetch = "20000"
- gsrs.clinicaltrial.ivm.search.max.fetch = "20000"
+@@ -420,9 +464,28 @@ gsrs.clinicaltrial.ivm.search.max.fetch = "20000"
+ gsrs.substance.structures.saltFilePath=salt_data_public.tsv
  
  gsrs.entityProcessors+={
 -        "entityClassName": ix.ginas.models.v1.Substance,
@@ -2699,6 +3019,19 @@ index b808b73..c382d39 100644
  
 +include "conf/substances.conf"
 +include "substances.conf"
+diff --git a/substances/src/main/resources/codeSystem.json b/substances/src/main/resources/codeSystem.json
+index f1f2cc0..0fcaf3a 100644
+--- a/substances/src/main/resources/codeSystem.json
++++ b/substances/src/main/resources/codeSystem.json
+@@ -31,7 +31,7 @@
+     {"codeSystem":"USAN","url":"https://searchusan.ama-assn.org/finder/usan/search/$CODE$/relevant/1/"},
+     {"codeSystem":"NSC","url":"https://dtp.cancer.gov/dtpstandard/servlet/dwindex?searchtype=NSC&outputformat=html&searchlist=$CODE$"},
+     {"codeSystem":"EPA CompTox","url":"https://comptox.epa.gov/dashboard/chemical/details/$CODE$"},
+-    {"codeSystem":"DailyMed","url":"https://dailymed.nlm.nih.gov/dailymed/search.cfm?adv=1&query=($CODE$)"}, 
++    {"codeSystem":"DailyMed","url":"https://dailymed.nlm.nih.gov/dailymed/search.cfm?adv=1&query=($CODE$)"},
+     {"codeSystem":"Catalogue of Life","url":"https://www.catalogueoflife.org/data/taxon/$CODE$"},
+     {"codeSystem":"POWO","url":"https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:$CODE$"}
+ ]
 diff --git a/substances/src/main/webapp/META-INF/context.xml b/substances/src/main/webapp/META-INF/context.xml
 new file mode 100644
 index 0000000..c5fbbb1

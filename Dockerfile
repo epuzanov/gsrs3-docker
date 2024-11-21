@@ -1,13 +1,18 @@
 FROM maven:3-jdk-11 as build
     ENV MAVEN_CONFIG=
     ENV CATALINA_HOME=/usr/local/tomcat
-    ARG GSRS_VER=3.1
-    ARG GSRS_TAG=GSRSv3.1PUB
-    ARG EP_EXT_TAG=GSRSv3.1PUB
-    #ARG MODULE_IGNORE="adverse-events applications clinical-trials products ssg4m"
+    ARG GSRS_VER=3.1.1
+    ARG GSRS_TAG=GSRSv3.1.1PUB
+    ARG EP_EXT_TAG=GSRSv3.1.1PUB
+    #ARG MODULE_IGNORE="adverse-events applications clinical-trials impurities invitro-pharmacology products ssg4m"
     ARG MODULE_IGNORE=
 
     COPY patches /src/patches
+
+    # Download Source and installExtraJars
+    RUN git clone --recursive --depth=1 --branch ${GSRS_TAG} https://github.com/ncats/gsrs3-main-deployment.git && \
+        cd gsrs3-main-deployment/substances && sh ./installExtraJars.sh && cd ../..
+
     # Install EP Extensions
     RUN [ -z "EP_EXT_TAG" ] && exit 0 ; \
         git clone --recursive --depth=1 --branch ${EP_EXT_TAG} https://github.com/epuzanov/gsrs-ep-substance-extension.git && \
@@ -15,8 +20,8 @@ FROM maven:3-jdk-11 as build
         sh ./mvnw clean -U install -DskipTests && \
         cd ..
 
-    RUN git clone --recursive --depth=1 --branch ${GSRS_TAG} https://github.com/ncats/gsrs3-main-deployment.git && \
-        cd gsrs3-main-deployment && \
+    # Compile and deploy modules
+    RUN cd gsrs3-main-deployment && \
         [ -z "EP_EXT_TAG" ] && rm -rf /src/patches/30-gsrsEpExtension.patch ; \
         apt-get update && apt-get install -y --no-install-recommends patch && [ -d /src/patches ] && find /src/patches -type f -name '*.patch' -print0 -exec patch -p1 -i {} \; ; \
         mkdir -p ${CATALINA_HOME}/conf/Catalina/localhost ${CATALINA_HOME}/webapps && \
@@ -24,6 +29,7 @@ FROM maven:3-jdk-11 as build
         for module in `ls -1` ; do \
             [ ! -f ${module}/mvnw ] && continue ; \
             cd ${module} && \
+            [ -f installExtraJars.sh ] && sh ./installExtraJars.sh ; \
             sh ./mvnw clean -U package -DskipTests && \
             unzip ./target/${module}.war.original -d ${CATALINA_HOME}/webapps/${module} && \
             mkdir -p ${CATALINA_HOME}/work/Catalina/localhost/${module} && \
@@ -51,7 +57,7 @@ FROM tomcat:9-jre11
         sed -i "s/logs/\/home\/srs\/logs/g" ${CATALINA_HOME}/conf/server.xml && \
         sed -i "s/8080/\$\{port.http.nossl:-8080\}/g" ${CATALINA_HOME}/conf/server.xml && \
         sed -i "s/connectionTimeout/maxPostSize=\"536870912\" relaxedQueryChars=\"[]|{}\" connectionTimeout/g" ${CATALINA_HOME}/conf/server.xml && \
-        sed -i "s/unpackWARs=\"true\" autoDeploy=\"true\"/unpackWARs=\"false\" autoDeploy=\"false\" deployIgnore=\"\$\{deploy.ignore.pattern:-(adverse-events|applications|clinical-trials|impurities|products|ssg4m)\}\"/g" ${CATALINA_HOME}/conf/server.xml && \
+        sed -i "s/unpackWARs=\"true\" autoDeploy=\"true\"/unpackWARs=\"false\" autoDeploy=\"false\" deployIgnore=\"\$\{deploy.ignore.pattern:-(adverse-events|applications|clinical-trials|impurities|invitro-pharmacology|products|ssg4m)\}\"/g" ${CATALINA_HOME}/conf/server.xml && \
         sed -i "s/\$.catalina.base././g" ${CATALINA_HOME}/conf/logging.properties && \
         mkdir -p /root/.cache/JNA /root/.java/fonts /home/srs/conf /home/srs/logs /home/srs/exports && \
         ln -s /tmp /root/.cache/JNA/temp && \

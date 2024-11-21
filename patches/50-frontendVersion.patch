@@ -1,0 +1,22 @@
+diff --git a/frontend/pom.xml b/frontend/pom.xml
+index 1e3e392..9e36634 100644
+--- a/frontend/pom.xml
++++ b/frontend/pom.xml
+@@ -10,7 +10,7 @@
+     </parent>
+     <groupId>gov.nih.ncats</groupId>
+     <artifactId>frontend</artifactId>
+-    <version>3.1.1-SNAPSHOT</version>
++    <version>3.1.1</version>
+     <name>frontend</name>
+     <description>Demo project for Spring Boot</description>
+     <properties>
+@@ -18,7 +18,7 @@
+         <with.packaging>war</with.packaging>
+         <with.fork>true</with.fork>
+         <gateway.host>http://localhost:8080</gateway.host>
+-        <npm.script.name>build:fda:prod</npm.script.name>
++        <npm.script.name>build:gsrs:prod</npm.script.name>
+         <log4j2.version>2.17.2</log4j2.version>
+         <frontend.repo>https://github.com/ncats/GSRSFrontend</frontend.repo>
+         <frontend.tag>GSRSv${project.version}PUB</frontend.tag>

@@ -1,0 +1,17 @@
+diff --git a/substances/src/main/resources/application.conf b/substances/src/main/resources/application.conf
+index 31537e8..cc2c7b8 100644
+--- a/substances/src/main/resources/application.conf
++++ b/substances/src/main/resources/application.conf
+@@ -461,7 +461,7 @@ gsrs.application.ivm.search.max.fetch = "20000"
+ gsrs.product.ivm.search.max.fetch = "20000"
+ gsrs.clinicaltrial.ivm.search.max.fetch = "20000"
+ 
+-gsrs.substance.structures.saltFilePath=salt_data_public.tsv
++gsrs.substance.structures.saltFilePath=/usr/local/tomcat/webapps/substances/WEB-INF/classes/salt_data_public.tsv
+ 
+ gsrs.entityProcessors+={
+     "entityClassName": ix.ginas.models.v1.Substance,
+diff --git a/substances/salt_data_public.tsv b/substances/src/main/resources/salt_data_public.tsv
+similarity index 100%
+rename from substances/salt_data_public.tsv
+rename to substances/src/main/resources/salt_data_public.tsv
