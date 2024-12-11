@@ -30,7 +30,7 @@ services:
         -Xms4g
         -Xmx4g
         -Dgateway.allow.pattern="\d+\.\d+\.\d+\.\d+"
-        -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|frontend|impurities|products|ROOT)"
+        -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|frontend|impurities|invitro-pharmacology|products|ssg4m|ROOT)"
       APPLICATION_HOST: http://localhost
       DB_URL_SUBSTANCES: jdbc:postgresql://db:5432/substances
       DB_USERNAME: postgres
@@ -54,7 +54,7 @@ services:
         -Xms512m
         -Xmx512m
         -Dgateway.allow.pattern="\d+\.\d+\.\d+\.\d+"
-        -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|impurities|products|substances|ROOT)"
+        -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|impurities|invitro-pharmacology|products|ssg4m|substances|ROOT)"
       APPLICATION_HOST: http://localhost
   gateway:
     image: gsrs3:latest
@@ -70,7 +70,7 @@ services:
       JAVA_OPTS:
         -Xms512m
         -Xmx512m
-        -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|frontend|impurities|products|substances)"
+        -Ddeploy.ignore.pattern="(adverse-events|applications|clinical-trials|frontend|impurities|invitro-pharmacology|products|ssg4m|substances)"
       APPLICATION_HOST: http://localhost
       MS_URL_FRONTEND: http://frontend:8080/frontend
       API_URL: http://substances:8080/
