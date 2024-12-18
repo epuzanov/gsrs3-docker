@@ -1,5 +1,5 @@
 diff --git a/adverse-events/src/main/resources/application.conf b/adverse-events/src/main/resources/application.conf
-index 03f1f91..a381847 100644
+index 03f1f91..1226234 100644
 --- a/adverse-events/src/main/resources/application.conf
 +++ b/adverse-events/src/main/resources/application.conf
 @@ -1,20 +1,18 @@
@@ -33,7 +33,7 @@ index 03f1f91..a381847 100644
  
  # Secure session off for dev, but if using HTTPS it's better to have it on
  gsrs.sessions.sessionSecure=false
-@@ -23,51 +21,71 @@ gsrs.sessions.sessionSecure=false
+@@ -23,51 +21,73 @@ gsrs.sessions.sessionSecure=false
  # or else need to implement it
  gsrs.substances.molwitch.enabled=false
  
@@ -76,6 +76,7 @@ index 03f1f91..a381847 100644
 +##################################################################
 +
 +spring.datasource.url="jdbc:h2:file:"${ix.home_substances}"/h2/sprinxight;AUTO_SERVER=TRUE"
++spring.datasource.url=${?DB_URL}
 +spring.datasource.url=${?DB_URL_SUBSTANCES}
 +spring.datasource.username=${?DB_USERNAME}
 +spring.datasource.password=${?DB_PASSWORD}
@@ -107,6 +108,7 @@ index 03f1f91..a381847 100644
 -adverseevent.datasource.driverClassName=org.h2.Driver
 -adverseevent.datasource.username="sa"
 -adverseevent.datasource.password=""
++adverseevent.datasource.url=${?DB_URL}
 +adverseevent.datasource.url=${?DB_URL_ADVERSE_EVENTS}
 +adverseevent.datasource.username=${?DB_USERNAME}
 +adverseevent.datasource.password=${?DB_PASSWORD}
@@ -131,7 +133,7 @@ index 03f1f91..a381847 100644
  
  ##################################################################
  # CONFIGURATIONS VALIDATORS, PROCESSORS, EXPORT, etc            ##
-@@ -76,11 +94,11 @@ adverseevent.jpa.hibernate.ddl-auto=update
+@@ -76,11 +96,11 @@ adverseevent.jpa.hibernate.ddl-auto=update
  gsrs.entityprocessors = [
      {
          "entityClassName" = "gov.hhs.gsrs.adverseevents.adverseeventpt.models.AdverseEventPt",
@@ -145,7 +147,7 @@ index 03f1f91..a381847 100644
      },
      {
          "entityClassName" = "gov.hhs.gsrs.adverseevents.adverseeventcvm.models.AdverseEventCvm",
-@@ -120,4 +138,24 @@ gsrs.indexers.list=[
+@@ -120,4 +140,24 @@ gsrs.indexers.list=[
           "indexer" = "gov.hhs.gsrs.adverseevents.indexers.AEATCIndexValueMaker",
           "class" = "gov.hhs.gsrs.adverseevents.adverseeventdme.models.AdverseEventCvm"
      }
@@ -185,7 +187,7 @@ index 0000000..cbcfa99
 +    </Resources>
 +</Context>
 diff --git a/applications/src/main/resources/application.conf b/applications/src/main/resources/application.conf
-index 4b076ef..e8ebdd2 100644
+index 4b076ef..e1cb500 100644
 --- a/applications/src/main/resources/application.conf
 +++ b/applications/src/main/resources/application.conf
 @@ -1,20 +1,18 @@
@@ -219,7 +221,7 @@ index 4b076ef..e8ebdd2 100644
  
  # Secure session off for dev, but if using HTTPS it's better to have it on
  gsrs.sessions.sessionSecure=false
-@@ -23,51 +21,71 @@ gsrs.sessions.sessionSecure=false
+@@ -23,51 +21,73 @@ gsrs.sessions.sessionSecure=false
  # or else need to implement it
  gsrs.substances.molwitch.enabled=false
  
@@ -262,6 +264,7 @@ index 4b076ef..e8ebdd2 100644
 +##################################################################
 +
 +spring.datasource.url="jdbc:h2:file:"${ix.home_substances}"/h2/sprinxight;AUTO_SERVER=TRUE"
++spring.datasource.url=${?DB_URL}
 +spring.datasource.url=${?DB_URL_SUBSTANCES}
 +spring.datasource.username=${?DB_USERNAME}
 +spring.datasource.password=${?DB_PASSWORD}
@@ -293,6 +296,7 @@ index 4b076ef..e8ebdd2 100644
 -application.datasource.driverClassName=org.h2.Driver
 -application.datasource.username="sa"
 -application.datasource.password=""
++application.datasource.url=${?DB_URL}
 +application.datasource.url=${?DB_URL_APPLICATIONS}
 +application.datasource.username=${?DB_USERNAME}
 +application.datasource.password=${?DB_PASSWORD}
@@ -317,7 +321,7 @@ index 4b076ef..e8ebdd2 100644
  
  ##################################################################
  # CONFIGURATIONS VALIDATORS, PROCESSORS, EXPORT, etc            ##
-@@ -78,17 +96,17 @@ gsrs.validators.applications = [
+@@ -78,17 +98,17 @@ gsrs.validators.applications = [
          "validatorClass" = "gov.hhs.gsrs.application.application.validators.RequiredFieldNonNullValidator",
          "newObjClass" = "gov.hhs.gsrs.application.application.models.Application",
      }
@@ -338,7 +342,7 @@ index 4b076ef..e8ebdd2 100644
      },
      {
          "class" = "gov.hhs.gsrs.application.applicationdarrts.models.ApplicationDarrts",
-@@ -99,13 +117,12 @@ gsrs.entityprocessors = [
+@@ -99,13 +119,12 @@ gsrs.entityprocessors = [
  # NEED THIS TO AVOID CVApi ERROR
  gsrs.entityProcessors=[]
  
@@ -354,7 +358,7 @@ index 4b076ef..e8ebdd2 100644
  ]
  
  gsrs.indexers.list=[
-@@ -113,12 +130,28 @@ gsrs.indexers.list=[
+@@ -113,12 +132,28 @@ gsrs.indexers.list=[
          "indexer" = "gov.hhs.gsrs.application.application.indexers.ApplicationIngredientIndexValueMaker",
          "class" = "gov.hhs.gsrs.application.application.models.Application"
      },
@@ -402,10 +406,10 @@ index 0000000..5986439
 +    </Resources>
 +</Context>
 diff --git a/clinical-trials/src/main/resources/application.conf b/clinical-trials/src/main/resources/application.conf
-index 978c718..1856c9a 100644
+index 978c718..d9c82f6 100644
 --- a/clinical-trials/src/main/resources/application.conf
 +++ b/clinical-trials/src/main/resources/application.conf
-@@ -1,194 +1,185 @@
+@@ -1,194 +1,187 @@
  include "gsrs-core.conf"
  
 -ix.home="ginas.ix"
@@ -496,6 +500,7 @@ index 978c718..1856c9a 100644
 -#debug=true
 -spring.main.allow-bean-definition-overriding=true
 +spring.datasource.url="jdbc:h2:file:"${ix.home_substances}"/h2/sprinxight;AUTO_SERVER=TRUE"
++spring.datasource.url=${?DB_URL}
 +spring.datasource.url=${?DB_URL_SUBSTANCES}
 +spring.datasource.username=${?DB_USERNAME}
 +spring.datasource.password=${?DB_PASSWORD}
@@ -518,6 +523,7 @@ index 978c718..1856c9a 100644
        }
  
 +clinicaltrial.datasource.url="jdbc:h2:"${ix.h2.base}"/appinxight;AUTO_SERVER=TRUE"
++clinicaltrial.datasource.url=${?DB_URL}
 +clinicaltrial.datasource.url=${?DB_URL_CLINICAL_TRIALS}
 +clinicaltrial.datasource.username=${?DB_USERNAME}
 +clinicaltrial.datasource.password=${?DB_PASSWORD}
@@ -731,7 +737,7 @@ index 978c718..1856c9a 100644
  ]
  
  # General Indexers
-@@ -197,16 +188,53 @@ gsrs.indexers.list += {"indexer" = "gov.hhs.gsrs.clinicaltrial.europe.indexers.C
+@@ -197,16 +190,53 @@ gsrs.indexers.list += {"indexer" = "gov.hhs.gsrs.clinicaltrial.europe.indexers.C
  
  # For cross indexing substance-browse to clinical trials
  gsrs.indexers.list += {
@@ -1496,7 +1502,7 @@ index 0000000..b24e9dd
 +    </Resources>
 +</Context>
 diff --git a/impurities/src/main/resources/application.conf b/impurities/src/main/resources/application.conf
-index ffabee9..14089ce 100644
+index ffabee9..7efacac 100644
 --- a/impurities/src/main/resources/application.conf
 +++ b/impurities/src/main/resources/application.conf
 @@ -1,20 +1,18 @@
@@ -1530,7 +1536,7 @@ index ffabee9..14089ce 100644
  
  # Secure session off for dev, but if using HTTPS it's better to have it on
  gsrs.sessions.sessionSecure=false
-@@ -23,51 +21,71 @@ gsrs.sessions.sessionSecure=false
+@@ -23,51 +21,73 @@ gsrs.sessions.sessionSecure=false
  # or else need to implement it
  gsrs.substances.molwitch.enabled=false
  
@@ -1573,6 +1579,7 @@ index ffabee9..14089ce 100644
 +##################################################################
 +
 +spring.datasource.url="jdbc:h2:file:"${ix.home_substances}"/h2/sprinxight;AUTO_SERVER=TRUE"
++spring.datasource.url=${?DB_URL}
 +spring.datasource.url=${?DB_URL_SUBSTANCES}
 +spring.datasource.username=${?DB_USERNAME}
 +spring.datasource.password=${?DB_PASSWORD}
@@ -1604,6 +1611,7 @@ index ffabee9..14089ce 100644
 -impurities.datasource.driverClassName=org.h2.Driver
 -impurities.datasource.username="sa"
 -impurities.datasource.password=""
++impurities.datasource.url=${?DB_URL}
 +impurities.datasource.url=${?DB_URL_IMPURITIES}
 +impurities.datasource.username=${?DB_USERNAME}
 +impurities.datasource.password=${?DB_PASSWORD}
@@ -1628,7 +1636,7 @@ index ffabee9..14089ce 100644
  
  ##################################################################
  # CONFIGURATIONS VALIDATORS, PROCESSORS, EXPORT, etc            ##
-@@ -84,14 +102,33 @@ gsrs.validators.impurities = [
+@@ -84,14 +104,33 @@ gsrs.validators.impurities = [
  gsrs.entityprocessors = [
      {
          "class" = "gov.hhs.gsrs.impurities.Impurities",
@@ -1678,10 +1686,10 @@ index 0000000..c63deb3
 +    </Resources>
 +</Context>
 diff --git a/invitro-pharmacology/src/main/resources/application.conf b/invitro-pharmacology/src/main/resources/application.conf
-index 105ef90..45d8980 100644
+index 105ef90..3e98780 100644
 --- a/invitro-pharmacology/src/main/resources/application.conf
 +++ b/invitro-pharmacology/src/main/resources/application.conf
-@@ -1,82 +1,107 @@
+@@ -1,82 +1,109 @@
  include "invitro-pharmacology-core.conf"
  
 -server.port=8090
@@ -1750,6 +1758,7 @@ index 105ef90..45d8980 100644
 +##################################################################
  
 +spring.datasource.url="jdbc:h2:file:"${ix.home_substances}"/h2/sprinxight;AUTO_SERVER=TRUE"
++spring.datasource.url=${?DB_URL}
 +spring.datasource.url=${?DB_URL_SUBSTANCES}
 +spring.datasource.username=${?DB_USERNAME}
 +spring.datasource.password=${?DB_PASSWORD}
@@ -1777,6 +1786,7 @@ index 105ef90..45d8980 100644
  
  invitropharmacology.datasource.url="jdbc:h2:"${ix.h2.base}"/appinxight;AUTO_SERVER=TRUE"
 -invitropharmacology.datasource.driverClassName=org.h2.Driver
++invitropharmacology.datasource.url=${?DB_URL}
 +invitropharmacology.datasource.url=${?DB_URL_INVITRO_PHARMACOLOGY}
 +invitropharmacology.datasource.username=${?DB_USERNAME}
 +invitropharmacology.datasource.password=${?DB_PASSWORD}
@@ -1829,7 +1839,7 @@ index 105ef90..45d8980 100644
  
  gsrs.validators.invitropharmacology = [
      {
-@@ -93,20 +118,18 @@ gsrs.validators.invitropharmacology = [
+@@ -93,20 +120,18 @@ gsrs.validators.invitropharmacology = [
  gsrs.entityprocessors = [
      {
          "class" = "gov.hhs.gsrs.invitropharmacology.models.InvitroPharmacology",
@@ -1852,7 +1862,7 @@ index 105ef90..45d8980 100644
  gsrs.indexers.list=[
      {
          "indexer" = "gov.hhs.gsrs.invitropharmacology.indexers.InvitroPharmacologyIndexValueMaker",
-@@ -114,3 +137,22 @@ gsrs.indexers.list=[
+@@ -114,3 +139,22 @@ gsrs.indexers.list=[
      }
  ]
  
@@ -1877,7 +1887,7 @@ index 105ef90..45d8980 100644
 +include "invitro-pharmacology.conf"
 diff --git a/invitro-pharmacology/src/main/webapp/META-INF/context.xml b/invitro-pharmacology/src/main/webapp/META-INF/context.xml
 new file mode 100644
-index 0000000..97fedea
+index 0000000..947d4ef
 --- /dev/null
 +++ b/invitro-pharmacology/src/main/webapp/META-INF/context.xml
 @@ -0,0 +1,6 @@
@@ -1888,7 +1898,7 @@ index 0000000..97fedea
 +    </Resources>
 +</Context>
 diff --git a/products/src/main/resources/application.conf b/products/src/main/resources/application.conf
-index 2b27d22..2866115 100644
+index 2b27d22..a662d5f 100644
 --- a/products/src/main/resources/application.conf
 +++ b/products/src/main/resources/application.conf
 @@ -1,20 +1,18 @@
@@ -1922,7 +1932,7 @@ index 2b27d22..2866115 100644
  
  # Secure session off for dev, but if using HTTPS it's better to have it on
  gsrs.sessions.sessionSecure=false
-@@ -23,57 +21,76 @@ gsrs.sessions.sessionSecure=false
+@@ -23,57 +21,78 @@ gsrs.sessions.sessionSecure=false
  # or else need to implement it
  gsrs.substances.molwitch.enabled=false
  
@@ -1966,6 +1976,7 @@ index 2b27d22..2866115 100644
 -spring.datasource.url="jdbc:h2:file:../substances/ginas.ix/h2/sprinxight;AUTO_SERVER=TRUE"
 -spring.datasource.driverClassName=org.h2.Driver
 +spring.datasource.url="jdbc:h2:file:"${ix.home_substances}"/h2/sprinxight;AUTO_SERVER=TRUE"
++spring.datasource.url=${?DB_URL}
 +spring.datasource.url=${?DB_URL_SUBSTANCES}
 +spring.datasource.username=${?DB_USERNAME}
 +spring.datasource.password=${?DB_PASSWORD}
@@ -1991,6 +2002,7 @@ index 2b27d22..2866115 100644
  
  product.datasource.url="jdbc:h2:"${ix.h2.base}"/appinxight;AUTO_SERVER=TRUE"
 -product.datasource.driverClassName=org.h2.Driver
++product.datasource.url=${?DB_URL}
 +product.datasource.url=${?DB_URL_PRODUCTS}
 +product.datasource.username=${?DB_USERNAME}
 +product.datasource.password=${?DB_PASSWORD}
@@ -2025,7 +2037,7 @@ index 2b27d22..2866115 100644
  
  # Substance API Substance Key Type, choose one (UUID, APPROVAL_ID, or BDNUM)
  substance.linking.keyType.productKeyType="UUID"
-@@ -81,8 +98,6 @@ substance.linking.keyType.productKeyType="UUID"
+@@ -81,8 +100,6 @@ substance.linking.keyType.productKeyType="UUID"
  # Choose one (api or entitymanager) to use Substance API or Substance Entity Manager for ProductSubstanceIndexValueMaker
  substance.product.ivm.substancekey.resolver.touse="entitymanager"
  
@@ -2034,7 +2046,7 @@ index 2b27d22..2866115 100644
  
  ##################################################################
  # CONFIGURATIONS VALIDATORS, PROCESSORS, INDEXERS, EXPORT, etc  ##
-@@ -99,12 +114,12 @@ gsrs.validators.products = [
+@@ -99,12 +116,12 @@ gsrs.validators.products = [
  gsrs.entityprocessors = [
      {
          "class" = "gov.hhs.gsrs.products.product.models.Product",
@@ -2049,7 +2061,7 @@ index 2b27d22..2866115 100644
  
  ix.ginas.export.factories.products = [
      "gov.hhs.gsrs.products.product.exporters.ProductExporterFactory",
-@@ -117,3 +132,23 @@ gsrs.indexers.list=[
+@@ -117,3 +134,23 @@ gsrs.indexers.list=[
          "class" = "gov.hhs.gsrs.products.product.models.Product"
      }
  ]
@@ -2085,23 +2097,11 @@ index 0000000..1951bdc
 +        <PreResources className="org.apache.catalina.webresources.DirResourceSet" base="${user.dir}/conf" internalPath="/" webAppMount="/WEB-INF/classes" />
 +    </Resources>
 +</Context>
-diff --git a/ssg4m/src/main/webapp/META-INF/context.xml b/ssg4m/src/main/webapp/META-INF/context.xml
-new file mode 100644
-index 0000000..97fedea
---- /dev/null
-+++ b/ssg4m/src/main/webapp/META-INF/context.xml
-@@ -0,0 +1,6 @@
-+<Context docBase="ssg4m">
-+    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-\d+\.\d+\.\d+\.\d+}"/>
-+    <Resources allowLinking="true" className="org.apache.catalina.webresources.StandardRoot">
-+        <PreResources className="org.apache.catalina.webresources.DirResourceSet" base="${user.dir}/conf" internalPath="/" webAppMount="/WEB-INF/classes" />
-+    </Resources>
-+</Context>
 diff --git a/ssg4m/src/main/resources/application.conf b/ssg4m/src/main/resources/application.conf
-index b1a1bd3..e9cec10 100644
+index b1a1bd3..84037df 100644
 --- a/ssg4m/src/main/resources/application.conf
 +++ b/ssg4m/src/main/resources/application.conf
-@@ -1,60 +1,91 @@
+@@ -1,60 +1,92 @@
  include "ssg4-core.conf"
  
 -# need to reconsider this a bit
@@ -2188,6 +2188,7 @@ index b1a1bd3..e9cec10 100644
 -spring.jpa.hibernate.ddl-auto=update
  
 +spring.datasource.url="jdbc:h2:file:"${ix.home_substances}"/h2/sprinxight;AUTO_SERVER=TRUE"
++spring.datasource.url=${?DB_URL}
 +spring.datasource.url=${?DB_URL_SUBSTANCES}
 +spring.datasource.username=${?DB_USERNAME}
 +spring.datasource.password=${?DB_PASSWORD}
@@ -2232,11 +2233,23 @@ index b1a1bd3..e9cec10 100644
  
 +include "conf/ssg4m.conf"
 +include "ssg4m.conf"
+diff --git a/ssg4m/src/main/webapp/META-INF/context.xml b/ssg4m/src/main/webapp/META-INF/context.xml
+new file mode 100644
+index 0000000..97fedea
+--- /dev/null
++++ b/ssg4m/src/main/webapp/META-INF/context.xml
+@@ -0,0 +1,6 @@
++<Context docBase="ssg4m">
++    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-\d+\.\d+\.\d+\.\d+}"/>
++    <Resources allowLinking="true" className="org.apache.catalina.webresources.StandardRoot">
++        <PreResources className="org.apache.catalina.webresources.DirResourceSet" base="${user.dir}/conf" internalPath="/" webAppMount="/WEB-INF/classes" />
++    </Resources>
++</Context>
 diff --git a/substances/src/main/resources/application.conf b/substances/src/main/resources/application.conf
-index 40c9131..31537e8 100644
+index 40c9131..41aca6b 100644
 --- a/substances/src/main/resources/application.conf
 +++ b/substances/src/main/resources/application.conf
-@@ -1,46 +1,98 @@
+@@ -1,46 +1,99 @@
  include "substances-core.conf"
  
 -application.host="http://localhost:8081"
@@ -2306,6 +2319,7 @@ index 40c9131..31537e8 100644
 -spring.datasource.driverClassName=org.h2.Driver
 +
 +spring.datasource.url="jdbc:h2:"${ix.h2.base}"/appinxight;AUTO_SERVER=TRUE"
++spring.datasource.url=${?DB_URL}
 +spring.datasource.url=${?DB_URL_SUBSTANCES}
 +spring.datasource.username=${?DB_USERNAME}
 +spring.datasource.password=${?DB_PASSWORD}
@@ -2356,7 +2370,7 @@ index 40c9131..31537e8 100644
  
  # This is configured in substance-core.conf; modify if needed here.
  # Standardize Names in accordance with FDA rules
-@@ -56,296 +108,6 @@ gsrs.sessions.sessionSecure=false
+@@ -56,296 +109,6 @@ gsrs.sessions.sessionSecure=false
  #         }
  # }
  
@@ -2653,7 +2667,7 @@ index 40c9131..31537e8 100644
  ## Add after StandardNameValidator
  # gsrs.validators.substances += {
  #         "validatorClass" = "ix.ginas.utils.validation.validators.StandardNameDuplicateValidator",
-@@ -362,30 +124,313 @@ gsrs.importAdapterFactories.substances =
+@@ -362,30 +125,313 @@ gsrs.importAdapterFactories.substances =
  # In FDA's case:
  # No automatic addition in tags found in names to explicit tag list.
  # No automatic deletion of explicit tags missing from bracketed terms.
@@ -2987,7 +3001,7 @@ index 40c9131..31537e8 100644
      {"matchableCalculationClass" : "gsrs.dataexchange.extractors.CASNumberMatchableExtractor",
          "config" :{
              "casCodeSystems": ["CAS", "CASNo", "CASNumber"]
-@@ -395,8 +440,7 @@ gsrs.matchableCalculators.substances =
+@@ -395,8 +441,7 @@ gsrs.matchableCalculators.substances =
      {"matchableCalculationClass" : "gsrs.dataexchange.extractors.ApprovalIdMatchableExtractor","config" :{}},
      {"matchableCalculationClass" : "gsrs.dataexchange.extractors.DefinitionalHashMatchableExtractor","config" :{}},
      {"matchableCalculationClass" : "gsrs.dataexchange.extractors.SelectedCodesMatchableExtractor",
@@ -2997,7 +3011,7 @@ index 40c9131..31537e8 100644
              "codeSystems" :["CAS", "ChemBL", "NCI", "NSC", "EINECS"]
          }
      },
-@@ -420,9 +464,28 @@ gsrs.clinicaltrial.ivm.search.max.fetch = "20000"
+@@ -420,9 +465,28 @@ gsrs.clinicaltrial.ivm.search.max.fetch = "20000"
  gsrs.substance.structures.saltFilePath=salt_data_public.tsv
  
  gsrs.entityProcessors+={
