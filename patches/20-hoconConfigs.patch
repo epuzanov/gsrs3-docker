@@ -1572,7 +1572,7 @@ index ffabee9..14089ce 100644
 +# SUBSTANCES DATABASE CONNECTION                                ##
 +##################################################################
 +
-+spring.datasource.url="jdbc:h2:file:"${home_substances}"/h2/sprinxight;AUTO_SERVER=TRUE"
++spring.datasource.url="jdbc:h2:file:"${ix.home_substances}"/h2/sprinxight;AUTO_SERVER=TRUE"
 +spring.datasource.url=${?DB_URL_SUBSTANCES}
 +spring.datasource.username=${?DB_USERNAME}
 +spring.datasource.password=${?DB_PASSWORD}
