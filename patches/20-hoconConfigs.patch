@@ -1875,6 +1875,18 @@ index 105ef90..45d8980 100644
 +
 +include "conf/invitro-pharmacology.conf"
 +include "invitro-pharmacology.conf"
+diff --git a/invitro-pharmacology/src/main/webapp/META-INF/context.xml b/invitro-pharmacology/src/main/webapp/META-INF/context.xml
+new file mode 100644
+index 0000000..97fedea
+--- /dev/null
++++ b/invitro-pharmacology/src/main/webapp/META-INF/context.xml
+@@ -0,0 +1,6 @@
++<Context docBase="invitro-pharmacology">
++    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-\d+\.\d+\.\d+\.\d+}"/>
++    <Resources allowLinking="true" className="org.apache.catalina.webresources.StandardRoot">
++        <PreResources className="org.apache.catalina.webresources.DirResourceSet" base="${user.dir}/conf" internalPath="/" webAppMount="/WEB-INF/classes" />
++    </Resources>
++</Context>
 diff --git a/products/src/main/resources/application.conf b/products/src/main/resources/application.conf
 index 2b27d22..2866115 100644
 --- a/products/src/main/resources/application.conf
@@ -2073,11 +2085,11 @@ index 0000000..1951bdc
 +        <PreResources className="org.apache.catalina.webresources.DirResourceSet" base="${user.dir}/conf" internalPath="/" webAppMount="/WEB-INF/classes" />
 +    </Resources>
 +</Context>
-diff --git a/ssg4m/src/main/resources/META-INF/context.xml b/ssg4m/src/main/resources/META-INF/context.xml
+diff --git a/ssg4m/src/main/webapp/META-INF/context.xml b/ssg4m/src/main/webapp/META-INF/context.xml
 new file mode 100644
 index 0000000..97fedea
 --- /dev/null
-+++ b/ssg4m/src/main/resources/META-INF/context.xml
++++ b/ssg4m/src/main/webapp/META-INF/context.xml
 @@ -0,0 +1,6 @@
 +<Context docBase="ssg4m">
 +    <Valve className="org.apache.catalina.valves.RemoteAddrValve" allow="${gateway.allow.pattern:-\d+\.\d+\.\d+\.\d+}"/>
