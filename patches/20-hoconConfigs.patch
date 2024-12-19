@@ -1163,12 +1163,12 @@ index 0000000..fc9a92f
 +    #############################
 +    "70_ssg4m_core" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/ssg4m/**",
-+        "url" = ${gsrs.microservice.ssg4m.api.baseURL}"/api/v1/ssg4m",
++        "url" = ${gsrs.microservice.ssg4m.api.baseURL}"/ssg4m",
 +        "serviceId" = "ssg4m_core"
 +    },
 +    "71_ssg4m_core_alt" = {
 +        "path" = ${?API_BASE_PATH}"/api/v1/ssg4m(**)/**",
-+        "url" = ${gsrs.microservice.ssg4m.api.baseURL}"/api/v1/ssg4m",
++        "url" = ${gsrs.microservice.ssg4m.api.baseURL}"/ssg4m",
 +        "serviceId" = "ssg4m_core_alt"
 +    },
 +    #############################
