@@ -921,7 +921,7 @@ new file mode 100644
 index 0000000..fc9a92f
 --- /dev/null
 +++ b/gateway/src/main/resources/application.conf
-@@ -0,0 +1,319 @@
+@@ -0,0 +1,325 @@
 +##################################################################
 +# MAIN CONFIGURATION                                            ##
 +##################################################################
@@ -1185,13 +1185,19 @@ index 0000000..fc9a92f
 +        "url" = ${gsrs.microservice.frontend.api.baseURL}"/ginas/app/ui",
 +        "serviceId" = "root"
 +    },
-+    "92_api_legacy_ginas_app" = {
++    "92_tomcat_context_substances" = {
++        "path" = "/ginas/app/substances/**",
++        "url" = ${gsrs.microservice.substances.api.baseURL},
++        "serviceId" = "tomcat_context_substances",
++        "stripPrefix": true
++    },
++    "93_api_legacy_ginas_app" = {
 +        "path" = "/ginas/app/**",
 +        "url" = ${gsrs.microservice.substances.api.baseURL},
 +        "serviceId" = "ginas_app",
 +        "stripPrefix": true
 +    },
-+    "93_api_legacy_gsrs_app" = {
++    "94_api_legacy_gsrs_app" = {
 +        "path" = "/gsrs/app/**",
 +        "url" = ${gsrs.microservice.substances.api.baseURL},
 +        "serviceId" = "gsrs_app",
