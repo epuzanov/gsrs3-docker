@@ -56,7 +56,7 @@ FROM tomcat:9-jre11
         chmod 755 /entrypoint.sh && \
         sed -i "s/logs/\/home\/srs\/logs/g" ${CATALINA_HOME}/conf/server.xml && \
         sed -i "s/8080/\$\{port.http.nossl:-8080\}/g" ${CATALINA_HOME}/conf/server.xml && \
-        sed -i "s/connectionTimeout/maxPostSize=\"536870912\" relaxedQueryChars=\"[]|{}\" connectionTimeout/g" ${CATALINA_HOME}/conf/server.xml && \
+        sed -i "s/connectionTimeout/maxPostSize=\"536870912\" relaxedQueryChars=\"\&#x5B;\&#x5D;\&#x7C;\&#x7B;\&#x7D;\&#x5E;\&#x5C;\&#x60;\&#x22;\&#x3C;\&#x3E;\" connectionTimeout/g" ${CATALINA_HOME}/conf/server.xml && \
         sed -i "s/unpackWARs=\"true\" autoDeploy=\"true\"/unpackWARs=\"false\" autoDeploy=\"false\" deployIgnore=\"\$\{deploy.ignore.pattern:-(adverse-events|applications|clinical-trials|impurities|invitro-pharmacology|products|ssg4m)\}\"/g" ${CATALINA_HOME}/conf/server.xml && \
         sed -i "s/\$.catalina.base././g" ${CATALINA_HOME}/conf/logging.properties && \
         mkdir -p /root/.cache/JNA /root/.java/fonts /home/srs/conf /home/srs/logs /home/srs/exports && \
