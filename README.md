@@ -20,6 +20,11 @@ Build All-in-One GSRS3 image:
 docker build --ulimit nofile=65535:65535 -t gsrs3:latest .
 ```
 
+Build All-in-One GSRS3 image of specified GSRS version tag:
+```
+docker build --ulimit nofile=65535:65535 --build-arg GSRS_TAG=GSRSv3.1.1PUB -t gsrs3:latest .
+```
+
 Build GSRS3 Image without "adverse-events", "applications", "clinical-trials" und "products" modules
 ```
 docker build --ulimit nofile=65535:65535 --build-arg MODULE_IGNORE="adverse-events applications clinical-trials products" -t gsrs3:latest .
